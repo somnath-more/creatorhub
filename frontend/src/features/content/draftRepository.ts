@@ -1,5 +1,10 @@
 import { z } from "zod";
 import {
+  requireSelectedMedia,
+  requireVerifiedCreator,
+} from "./publicationRules";
+import { verificationRepository } from "../verification/verificationRepository";
+import {
   draftFormSchema,
   draftSchema,
   priceToCents,
@@ -32,12 +37,71 @@ function write(drafts: Draft[]) {
   }
 }
 
+async function processDue(now = new Date()) {
+  const isDue = (content: Draft) =>
+    content.status === "SCHEDULED" &&
+    content.mediaStatus === "READY" &&
+    !!content.scheduledAt &&
+    new Date(content.scheduledAt) <= now;
+  if (!read().some(isDue)) return;
+  if ((await verificationRepository.load()).status !== "VERIFIED") return;
+  const records = read();
+  if (!records.some(isDue)) return;
+  write(
+    records.map((content) =>
+      isDue(content)
+        ? {
+            ...content,
+            status: "PUBLISHED",
+            publishedAt: now.toISOString(),
+            updatedAt: now.toISOString(),
+          }
+        : content,
+    ),
+  );
+}
+
+async function publishOrSchedule(
+  id: string,
+  scheduledAt?: string,
+): Promise<Draft> {
+  await requireVerifiedCreator();
+  const records = read();
+  const content = records.find((item) => item.id === id);
+  if (!content) throw new Error("This content no longer exists.");
+  if (content.status === "PUBLISHED")
+    throw new Error(
+      "This content is already published. Edit and save it as a draft to publish changes.",
+    );
+  requireSelectedMedia(content);
+  if (
+    scheduledAt &&
+    (!z.iso.datetime({ offset: true }).safeParse(scheduledAt).success ||
+      !Number.isFinite(Date.parse(scheduledAt)) ||
+      Date.parse(scheduledAt) <= Date.now())
+  )
+    throw new Error("Choose a valid publication date in the future.");
+  const now = new Date().toISOString();
+  const updated = draftSchema.parse({
+    ...content,
+    status: scheduledAt ? "SCHEDULED" : "PUBLISHED",
+    mediaStatus: "READY",
+    scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
+    publishedAt: scheduledAt ? undefined : now,
+    updatedAt: now,
+  });
+  write(records.map((item) => (item.id === id ? updated : item)));
+  return updated;
+}
+
 // Async boundary allows a later API implementation without changing the pages.
 export const draftRepository = {
   async list(): Promise<Draft[]> {
+    await processDue();
     return read().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   },
   async get(id: string): Promise<Draft | undefined> {
+    await processDue();
     return read().find((draft) => draft.id === id);
   },
   async save(
@@ -61,6 +125,9 @@ export const draftRepository = {
       priceCents: priceToCents(values.price),
       currency: "USD",
       status: "DRAFT",
+      mediaStatus: "NOT_READY",
+      scheduledAt: undefined,
+      publishedAt: undefined,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       ...media,
@@ -82,4 +149,13 @@ export const draftRepository = {
       );
     }
   },
+  publish: (id: string) => publishOrSchedule(id),
+  schedule: (id: string, scheduledAt: string) => {
+    if (!scheduledAt)
+      return Promise.reject(
+        new Error("Choose a valid publication date in the future."),
+      );
+    return publishOrSchedule(id, scheduledAt);
+  },
+  processDue,
 };

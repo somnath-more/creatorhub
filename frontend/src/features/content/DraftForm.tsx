@@ -67,6 +67,12 @@ export function DraftForm({ draft }: { draft?: Draft }) {
         a page reload. Drafts are private and can be saved without media or
         verification.
       </div>
+      {draft && draft.status !== "DRAFT" && (
+        <p className="rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+          Saving these edits returns this content to Draft and cancels any
+          scheduled publication. You will need to publish or schedule it again.
+        </p>
+      )}
       {saveError && (
         <p
           role="alert"
@@ -164,7 +170,11 @@ export function DraftForm({ draft }: { draft?: Draft }) {
           }
           variant="primary"
         >
-          {isSubmitting ? "Saving…" : "Save draft"}
+          {isSubmitting
+            ? "Saving…"
+            : draft && draft.status !== "DRAFT"
+              ? "Save as draft"
+              : "Save draft"}
         </Button>
         <Link
           to="/content"

@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Film, Plus, Trash2 } from "lucide-react";
 import { Button } from "../../components/atoms/Button";
 import { draftRepository } from "./draftRepository";
 import { formatPrice, type Draft } from "./draftSchema";
 import { getSessionMedia, removeSessionMedia } from "./sessionMedia";
 import { ThumbnailPreview } from "./ThumbnailPreview";
+import { ContentStatus } from "./ContentStatus";
 
 export function ContentLibrary() {
   const location = useLocation();
+  const [params, setParams] = useSearchParams();
+  const query = params.get("q") ?? "";
+  const status = params.get("status") ?? "ALL";
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -40,6 +44,23 @@ export function ContentLibrary() {
       active = false;
     };
   }, [reload]);
+
+  const hasScheduled = drafts.some((content) => content.status === "SCHEDULED");
+  useEffect(() => {
+    const refresh = () => setReload((value) => value + 1);
+    const timer = hasScheduled ? window.setInterval(refresh, 15000) : undefined;
+    window.addEventListener("focus", refresh);
+    return () => {
+      if (timer) window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [hasScheduled]);
+  const visibleContent = drafts.filter(
+    (content) =>
+      content.title.toLowerCase().includes(query.trim().toLowerCase()) &&
+      (!["DRAFT", "PUBLISHED", "SCHEDULED"].includes(status) ||
+        content.status === status),
+  );
 
   async function remove(id: string) {
     setDeleting(true);
@@ -87,6 +108,57 @@ export function ContentLibrary() {
         Local demo: drafts are saved in this browser only. Files stay in memory
         until a reload; their details remain saved.
       </p>
+      <div className="mt-5 flex flex-wrap gap-4">
+        <div className="min-w-0 flex-1">
+          <label htmlFor="content-search" className="sr-only">
+            Search content
+          </label>
+          <input
+            id="content-search"
+            type="search"
+            value={query}
+            placeholder="Search content by title"
+            onChange={(event) =>
+              setParams(
+                (previous) => {
+                  previous.set("q", event.target.value);
+                  return previous;
+                },
+                { replace: true },
+              )
+            }
+            className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label htmlFor="content-status" className="sr-only">
+            Filter by status
+          </label>
+          <select
+            id="content-status"
+            value={
+              ["DRAFT", "PUBLISHED", "SCHEDULED"].includes(status)
+                ? status
+                : "ALL"
+            }
+            onChange={(event) =>
+              setParams(
+                (previous) => {
+                  previous.set("status", event.target.value);
+                  return previous;
+                },
+                { replace: true },
+              )
+            }
+            className="min-h-11 max-w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+          >
+            <option value="ALL">All statuses</option>
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="SCHEDULED">Scheduled for Publication</option>
+          </select>
+        </div>
+      </div>
       {message && (
         <p
           role="status"
@@ -136,8 +208,16 @@ export function ContentLibrary() {
           </Link>
         </section>
       ) : null}
+      {!loading &&
+        !error &&
+        drafts.length > 0 &&
+        visibleContent.length === 0 && (
+          <p className="mt-8 rounded-xl bg-white p-6 text-sm text-slate-600">
+            No matching content
+          </p>
+        )}
       <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {drafts.map((draft) => {
+        {visibleContent.map((draft) => {
           const thumbnail = getSessionMedia(draft.id).thumbnail;
           return (
             <article
@@ -163,9 +243,7 @@ export function ContentLibrary() {
               </div>
               <div className="p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
-                    Draft
-                  </span>
+                  <ContentStatus status={draft.status} />
                   <span className="text-sm font-semibold">
                     {formatPrice(draft.priceCents)}
                   </span>
@@ -183,11 +261,18 @@ export function ContentLibrary() {
                 </p>
                 <div className="mt-5 flex flex-wrap items-center gap-3">
                   <Link
+                    to={`/content/${draft.id}`}
+                    aria-label={`View ${draft.title}`}
+                    className="inline-flex min-h-11 items-center rounded-xl bg-violet-50 px-4 text-sm font-semibold text-violet-700"
+                  >
+                    View
+                  </Link>
+                  <Link
                     to={`/content/${draft.id}/edit`}
                     aria-label={`Edit ${draft.title}`}
                     className="inline-flex min-h-11 items-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                   >
-                    Edit draft
+                    {draft.status === "DRAFT" ? "Edit draft" : "Edit content"}
                   </Link>
                   <Button
                     aria-label={`Delete ${draft.title}`}
@@ -209,14 +294,17 @@ export function ContentLibrary() {
                     className="mt-4 rounded-xl border border-red-100 bg-red-50 p-4"
                   >
                     <p className="text-sm leading-6 text-red-900">
-                      Delete this draft? This action cannot be undone.
+                      Delete this content? This action cannot be undone and
+                      cancels any scheduled publication.
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         disabled={deleting}
                         onClick={() => setConfirmId(null)}
                       >
-                        Keep draft
+                        {draft.status === "DRAFT"
+                          ? "Keep draft"
+                          : "Keep content"}
                       </Button>
                       <Button
                         disabled={deleting}

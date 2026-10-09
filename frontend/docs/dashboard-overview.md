@@ -8,10 +8,11 @@ Purchases; a 7/30-day revenue chart; and searchable, paginated recent purchases.
 Sales are explicitly labelled demo data and are separate from local content drafts.
 The asynchronous dashboard repository generates 30 sample transactions with stable
 IDs and dates relative to the current device calendar. It reads actual local drafts
-through the existing draft repository for Total Content. New drafts appear in that
+through the existing content repository for Total Content, including all publication
+statuses. New content appears in that
 metric when returning to the dashboard. Demo purchase data is not persisted.
 
-This milestone does not add publishing, backend analytics, payment processing,
+This dashboard milestone does not add backend analytics, payment processing,
 content-performance columns, or purchase entitlement enforcement.
 
 ## Calculation rules
@@ -33,7 +34,7 @@ daily-revenue table provides the same underlying data without needing a graph.
 ## Application states
 
 - `/`: demo sales and actual local draft count.
-- `/?demo=empty`: no sample purchases; content count still reflects saved drafts.
+- `/?demo=empty`: no sample purchases; content count still reflects saved local content.
 - `/?demo=error`: simulated repository failure with retry and a sample-dashboard link.
 - Corrupt or unavailable draft storage: error feedback, no silent zero content count.
 - Loading: skeleton cards and a labelled loading status while the repository resolves.
