@@ -7,6 +7,7 @@ import { getSessionMedia } from "./sessionMedia";
 import { ThumbnailPreview } from "./ThumbnailPreview";
 import { ContentStatus } from "./ContentStatus";
 import { VerificationRequiredError } from "./publicationRules";
+import { MediaUploadProgress } from "./MediaUploadProgress";
 
 export function ContentDetail() {
   const { id = "" } = useParams();
@@ -131,7 +132,7 @@ export function ContentDetail() {
         </Link>
       </div>
       <p className="mt-6 rounded-xl border border-violet-100 bg-violet-50 p-4 text-sm leading-6 text-violet-900">
-        Local publishing demo only. Selected files simulate media readiness; no
+        Local publishing demo only. Completed uploads simulate media readiness; no
         video is uploaded, processed, or delivered to viewers.
       </p>
       {message && (
@@ -212,9 +213,9 @@ export function ContentDetail() {
               <dt className="text-slate-500">Media readiness</dt>
               <dd className="mt-1">
                 {content.mediaStatus === "READY"
-                  ? "Ready for demo (selection recorded)"
+                  ? "Ready for demo (completed uploads recorded)"
                   : mediaReady
-                    ? "Files selected for demo publishing"
+                    ? "Files selected; check upload progress below"
                     : "Reselect and save media before publishing"}
               </dd>
             </div>
@@ -239,6 +240,8 @@ export function ContentDetail() {
               </div>
             )}
           </dl>
+          {media.thumbnail && <MediaUploadProgress file={media.thumbnail} label="Thumbnail" />}
+          {media.video && <MediaUploadProgress file={media.video} label="Video" />}
         </section>
         <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
           <h2 className="text-lg font-semibold">Publication</h2>
@@ -251,7 +254,8 @@ export function ContentDetail() {
             <>
               <p className="mt-3 text-sm leading-6 text-slate-500">
                 Publish now or choose a future date. Both actions require demo
-                approval and selected media.
+                approval and completed simulated uploads. Uploads continue while
+                navigating within this app; reselect files after a reload.
               </p>
               <Button
                 variant="primary"

@@ -14,7 +14,8 @@ reset is required. Publication status and media readiness are separate fields.
 
 - Creating and saving drafts requires no verification.
 - Publishing and scheduling require VERIFIED demo status, valid saved content,
-  and both a thumbnail and video selected in the current session.
+  and both a thumbnail and video selected in the current session with completed
+  simulated uploads. See [upload progress](upload-progress.md).
 - File metadata must match the selected files. MIME type, nonzero size, and existing
   upload-size limits are rechecked at the repository boundary.
 - Stored filenames alone cannot satisfy media selection after a reload.
@@ -27,7 +28,8 @@ reset is required. Publication status and media readiness are separate fields.
   publication timestamps and schedules. The editor explains this beside the form
   and labels the action Save as draft.
 
-The READY marker means that file selection was validated for the local demo, not
+The READY marker means that file selection and simulated upload completion were
+validated for the local demo, not
 that media was uploaded, transcoded, stored remotely, or made playable to viewers.
 File bytes remain in memory; metadata and publication status survive reload.
 

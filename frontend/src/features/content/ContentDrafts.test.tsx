@@ -1,15 +1,17 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { MemoryRouter } from "react-router-dom";
 import App from "../../App";
+import { uploadService } from "./uploadService";
 
 beforeEach(() => localStorage.clear());
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 function open(path = "/content/new") {
@@ -31,6 +33,24 @@ async function fillDraft(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("content draft workflow", () => {
+  it("starts uploads on selection, cancels a replaced file, and saves while uploading", async () => {
+    const user = userEvent.setup();
+    open();
+    await fillDraft(user);
+    vi.useFakeTimers();
+    const first = new File(["first"], "first.mp4", { type: "video/mp4" });
+    const replacement = new File(["second"], "second.mp4", { type: "video/mp4" });
+    fireEvent.change(screen.getByLabelText("Video"), { target: { files: [first] } });
+    expect(uploadService.get(first).status).toBe("UPLOADING");
+    fireEvent.change(screen.getByLabelText("Video"), { target: { files: [replacement] } });
+    expect(uploadService.get(first).status).toBe("CANCELLED");
+    expect(uploadService.get(replacement).status).toBe("UPLOADING");
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Save draft" })); });
+    expect(screen.getByText("Draft saved.")).toBeVisible();
+    expect(uploadService.get(replacement).status).toBe("UPLOADING");
+    act(() => vi.advanceTimersByTime(5000));
+    expect(uploadService.get(replacement).status).toBe("COMPLETED");
+  });
   it("validates, saves, persists across remounts, edits, cancels deletion, then deletes", async () => {
     const user = userEvent.setup();
     const view = open();

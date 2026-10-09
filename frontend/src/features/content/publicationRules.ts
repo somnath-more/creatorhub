@@ -1,6 +1,7 @@
 import { verificationRepository } from "../verification/verificationRepository";
 import type { Draft } from "./draftSchema";
 import { getSessionMedia } from "./sessionMedia";
+import { uploadService } from "./uploadService";
 
 export class VerificationRequiredError extends Error {
   constructor() {
@@ -38,6 +39,9 @@ export function requireSelectedMedia(content: Draft) {
       throw new Error(
         "Reselect and save both a valid thumbnail and video in the editor before publishing or scheduling.",
       );
+    }
+    if (uploadService.get(file).status !== "COMPLETED") {
+      throw new Error("Complete both simulated uploads in the editor before publishing or scheduling.");
     }
   }
 }
