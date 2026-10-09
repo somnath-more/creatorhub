@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
 import { Button } from "../../components/atoms/Button";
 import { verificationRepository } from "./verificationRepository";
@@ -9,6 +9,11 @@ import { EvidenceInput } from "./EvidenceInput";
 import { VerificationSteps } from "./VerificationSteps";
 
 export function VerificationWizard() {
+  const [params] = useSearchParams();
+  const requestedReturn = params.get("returnTo") ?? "";
+  const returnTo = /^\/content\/[a-zA-Z0-9-]+$/.test(requestedReturn)
+    ? requestedReturn
+    : "/content";
   const [progress, setProgress] = useState<VerificationProgress>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -70,6 +75,22 @@ export function VerificationWizard() {
     }
   }
 
+  async function approveDemo() {
+    setBusy(true);
+    setError("");
+    try {
+      setProgress(await verificationRepository.simulateApproval());
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Demo approval failed. Try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (!progress && !error)
     return (
       <p role="status" className="mt-8 text-sm text-slate-500">
@@ -109,7 +130,9 @@ export function VerificationWizard() {
             ? "Not started"
             : progress.status === "IN_PROGRESS"
               ? "In progress"
-              : "Submitted"}
+              : progress.status === "VERIFIED"
+                ? "Verified (demo)"
+                : "Submitted"}
         </span>
       </p>
       <VerificationSteps
@@ -167,7 +190,8 @@ export function VerificationWizard() {
               {busy ? "Saving..." : "Start verification"}
             </Button>
           </>
-        ) : progress.status === "SUBMITTED" ? (
+        ) : progress.status === "SUBMITTED" ||
+          progress.status === "VERIFIED" ? (
           <>
             <ShieldCheck
               size={40}
@@ -175,24 +199,40 @@ export function VerificationWizard() {
               aria-hidden="true"
             />
             <h2 tabIndex={-1} className="mt-4 text-2xl font-semibold">
-              Verification submitted
+              {progress.status === "VERIFIED"
+                ? "Verified for demo publishing"
+                : "Verification submitted"}
             </h2>
             <p
               role="status"
               className="mt-3 text-sm leading-6 text-emerald-800"
             >
-              Your simulated verification has been successfully submitted.
+              {progress.status === "VERIFIED"
+                ? "Demo approval is complete. You can now simulate publishing and scheduling."
+                : "Your simulated verification has been successfully submitted."}
             </p>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              Submission is awaiting review and does not mean your account is
-              verified. Publishing remains locked until approval is implemented.
+              {progress.status === "VERIFIED"
+                ? "This approval is a local demonstration, not a real identity check."
+                : "Submission is awaiting review and does not mean your account is verified. Publishing remains locked until you explicitly simulate approval below."}
             </p>
             <Link
-              to="/content"
+              to={returnTo}
               className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white hover:bg-violet-700"
             >
               Back to content
             </Link>
+            {progress.status === "SUBMITTED" && (
+              <div className="mt-5 border-t border-slate-200 pt-5">
+                <p className="mb-3 text-xs leading-5 text-slate-500">
+                  Assessment demo control: simulate a successful review without
+                  an external identity service.
+                </p>
+                <Button disabled={busy} onClick={() => void approveDemo()}>
+                  {busy ? "Approving..." : "Simulate approval (demo)"}
+                </Button>
+              </div>
+            )}
           </>
         ) : progress.step === 1 ? (
           <PersonalInformationForm

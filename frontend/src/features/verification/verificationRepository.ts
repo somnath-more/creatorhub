@@ -30,4 +30,16 @@ export const verificationRepository = {
       );
     }
   },
+  async simulateApproval(): Promise<VerificationProgress> {
+    const progress = await verificationRepository.load();
+    if (progress.status !== "SUBMITTED")
+      throw new Error(
+        "Verification must be submitted before simulating approval.",
+      );
+    return verificationRepository.save({
+      ...progress,
+      status: "VERIFIED",
+      approvedAt: new Date().toISOString(),
+    });
+  },
 };

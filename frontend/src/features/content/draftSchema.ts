@@ -29,18 +29,42 @@ export const fileMetadataSchema = z.object({
 });
 export type FileMetadata = z.infer<typeof fileMetadataSchema>;
 
-export const draftSchema = z.object({
-  id: z.string().min(1),
-  title: draftFormSchema.shape.title,
-  description: draftFormSchema.shape.description,
-  priceCents: z.number().int().min(0).max(99999999),
-  currency: z.literal("USD"),
-  status: z.literal("DRAFT"),
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
-  thumbnail: fileMetadataSchema.optional(),
-  video: fileMetadataSchema.optional(),
-});
+export const draftSchema = z
+  .object({
+    id: z.string().min(1),
+    title: draftFormSchema.shape.title,
+    description: draftFormSchema.shape.description,
+    priceCents: z.number().int().min(0).max(99999999),
+    currency: z.literal("USD"),
+    status: z.enum(["DRAFT", "PUBLISHED", "SCHEDULED"]),
+    mediaStatus: z.enum(["NOT_READY", "READY"]).default("NOT_READY"),
+    scheduledAt: z.iso.datetime().optional(),
+    publishedAt: z.iso.datetime().optional(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    thumbnail: fileMetadataSchema.optional(),
+    video: fileMetadataSchema.optional(),
+  })
+  .superRefine((content, context) => {
+    if (
+      content.status !== "DRAFT" &&
+      (content.mediaStatus !== "READY" || !content.thumbnail || !content.video)
+    )
+      context.addIssue({
+        code: "custom",
+        message: "Published and scheduled content requires ready media.",
+      });
+    if (content.status === "SCHEDULED" && !content.scheduledAt)
+      context.addIssue({
+        code: "custom",
+        message: "Scheduled content requires a publication date.",
+      });
+    if (content.status === "PUBLISHED" && !content.publishedAt)
+      context.addIssue({
+        code: "custom",
+        message: "Published content requires a publication timestamp.",
+      });
+  });
 export type Draft = z.infer<typeof draftSchema>;
 
 export function priceToCents(price: string): number {

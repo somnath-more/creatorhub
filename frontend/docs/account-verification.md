@@ -6,9 +6,10 @@ The `/verification` page provides four responsive steps: personal information,
 sample identity document, sample selfie check, and submission confirmation.
 It uses the existing React Hook Form, Zod, and shared button components.
 
-States are NOT_STARTED, IN_PROGRESS, and SUBMITTED. No VERIFIED state or approval
-mechanism is implemented. Submission does not unlock publishing. The future backend
-must enforce verified status independently of this local demo.
+States are NOT_STARTED, IN_PROGRESS, SUBMITTED, and VERIFIED (demo). Submission
+does not unlock publishing. The publishing milestone adds an explicitly labelled
+Simulate approval (demo) action for submitted verification. The future backend must
+enforce verified status independently of this local demonstration.
 
 ## Validation and persistence
 
@@ -23,7 +24,8 @@ File validation checks declared MIME type and size for demo UX only. It does not
 inspect file contents, establish authenticity, or run facial recognition.
 
 Local progress under `creatorhub.verification.v1` contains the step, status,
-fictional personal details, identification type, and submission timestamp. Progress
+fictional personal details, identification type, submission timestamp, and optional
+demo approval timestamp. Progress
 is saved when continuing or going back, not on every keystroke. Storage errors
 preserve the current form; corrupted saved data is reported without being erased.
 

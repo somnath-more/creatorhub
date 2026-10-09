@@ -96,7 +96,7 @@ export function DashboardOverview() {
     <>
       <p className="mt-6 rounded-xl border border-violet-100 bg-violet-50 p-4 text-sm leading-6 text-violet-900">
         Sales figures use demo purchases. Total Content reflects your saved
-        local drafts; sample sales are separate from those drafts.
+        local content; sample sales are separate from that content.
       </p>
       <section aria-label="Overview metrics" className="mt-6">
         <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -115,7 +115,7 @@ export function DashboardOverview() {
           <MetricCard
             title="Total Content"
             value={String(metrics.totalContent)}
-            hint="Drafts saved in this browser"
+            hint="Content saved in this browser"
             icon={Video}
           />
           <MetricCard

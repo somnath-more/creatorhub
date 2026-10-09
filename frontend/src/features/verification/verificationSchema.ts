@@ -38,7 +38,7 @@ export type DocumentType = (typeof documentTypes)[number] | "";
 
 export const progressSchema = z
   .object({
-    status: z.enum(["NOT_STARTED", "IN_PROGRESS", "SUBMITTED"]),
+    status: z.enum(["NOT_STARTED", "IN_PROGRESS", "SUBMITTED", "VERIFIED"]),
     step: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
     personal: z.object({
       fullName: z.string().max(100),
@@ -47,6 +47,7 @@ export const progressSchema = z
     }),
     documentType: z.union([z.literal(""), z.enum(documentTypes)]),
     submittedAt: z.iso.datetime().optional(),
+    approvedAt: z.iso.datetime().optional(),
   })
   .superRefine((value, context) => {
     if (value.step >= 2 && !personalSchema.safeParse(value.personal).success)
@@ -60,7 +61,7 @@ export const progressSchema = z
         message: "Select an identification type.",
       });
     if (
-      value.status === "SUBMITTED"
+      value.status === "SUBMITTED" || value.status === "VERIFIED"
         ? value.step !== 4 || !value.submittedAt
         : value.step === 4 || !!value.submittedAt
     )
@@ -70,6 +71,11 @@ export const progressSchema = z
       });
     if (value.status === "NOT_STARTED" && value.step !== 1)
       context.addIssue({ code: "custom", message: "Invalid starting state." });
+    if (value.status === "VERIFIED" ? !value.approvedAt : !!value.approvedAt)
+      context.addIssue({
+        code: "custom",
+        message: "Verified demo state requires explicit approval.",
+      });
   });
 export type VerificationProgress = z.infer<typeof progressSchema>;
 export const emptyProgress: VerificationProgress = {

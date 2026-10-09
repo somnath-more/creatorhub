@@ -30,7 +30,7 @@ describe("verification validation", () => {
         .success,
     ).toBe(false);
   });
-  it("does not accept an in-progress confirmation or a verified state", () => {
+  it("does not accept an in-progress confirmation or verified state without explicit approval", () => {
     expect(
       progressSchema.safeParse({
         status: "IN_PROGRESS",
