@@ -1,17 +1,21 @@
-import './App.css'
+import { Route, Routes } from "react-router-dom";
+import { PortalLayout } from "./layouts/PortalLayout";
+import { DashboardPage } from "./pages/DashboardPage";
+import { ContentPage } from "./pages/ContentPage";
+import { CreateContentPage } from "./pages/CreateContentPage";
+import { VerificationPage } from "./pages/VerificationPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
-function App() {
-
+export default function App() {
   return (
-   <main className="min-h-screen bg-slate-950 p-8 text-white">
-      <p className="text-4xl font-bold text-slate-300">
-        CreatorHub
-      </p>
-      <p className="mt-4 text-slate-300">
-        React, TypeScript, and Tailwind are ready.
-      </p>
-    </main>
-  )
+    <Routes>
+      <Route element={<PortalLayout />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="content" element={<ContentPage />} />
+        <Route path="content/new" element={<CreateContentPage />} />
+        <Route path="verification" element={<VerificationPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
+  );
 }
-
-export default App
