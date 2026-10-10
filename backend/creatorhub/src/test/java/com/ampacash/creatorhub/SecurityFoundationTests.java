@@ -34,12 +34,12 @@ class SecurityFoundationTests {
         mvc.perform(get("/api/content").with(user("test"))).andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status").value(403));
     }
-    @Test void approvedPreflightHasExactOriginAndNoCredentials() throws Exception {
+    @Test void approvedPreflightHasExactOriginAndCredentials() throws Exception {
         mvc.perform(options("/api/content").header("Origin", "http://localhost:5173")
                         .header("Access-Control-Request-Method", "POST")
                         .header("Access-Control-Request-Headers", "Authorization, Content-Type"))
                 .andExpect(status().isOk()).andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
-                .andExpect(header().doesNotExist("Access-Control-Allow-Credentials"));
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
     }
     @Test void similarUnapprovedOriginsAreRejected() throws Exception {
         for (String origin : new String[]{"https://example.com", "http://localhost:5173.evil.com", "null"}) {

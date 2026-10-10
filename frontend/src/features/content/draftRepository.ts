@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { accountKey, captureAccount } from "../auth/accountScope";
 import {
   requireSelectedMedia,
   requireVerifiedCreator,
@@ -18,7 +19,7 @@ type MediaMetadata = { thumbnail?: FileMetadata; video?: FileMetadata };
 
 function read(): Draft[] {
   try {
-    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    const raw = localStorage.getItem(accountKey(DRAFT_STORAGE_KEY));
     return raw === null ? [] : z.array(draftSchema).parse(JSON.parse(raw));
   } catch {
     throw new Error(
@@ -29,7 +30,7 @@ function read(): Draft[] {
 
 function write(drafts: Draft[]) {
   try {
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
+    localStorage.setItem(accountKey(DRAFT_STORAGE_KEY), JSON.stringify(drafts));
   } catch {
     throw new Error(
       "Your draft could not be saved. Browser storage may be full or unavailable. Keep this page open and try again.",
@@ -38,6 +39,7 @@ function write(drafts: Draft[]) {
 }
 
 async function processDue(now = new Date()) {
+  const checkAccount = captureAccount();
   const isDue = (content: Draft) =>
     content.status === "SCHEDULED" &&
     content.mediaStatus === "READY" &&
@@ -45,6 +47,7 @@ async function processDue(now = new Date()) {
     new Date(content.scheduledAt) <= now;
   if (!read().some(isDue)) return;
   if ((await verificationRepository.load()).status !== "VERIFIED") return;
+  checkAccount();
   const records = read();
   if (!records.some(isDue)) return;
   write(
@@ -65,7 +68,9 @@ async function publishOrSchedule(
   id: string,
   scheduledAt?: string,
 ): Promise<Draft> {
+  const checkAccount = captureAccount();
   await requireVerifiedCreator();
+  checkAccount();
   const records = read();
   const content = records.find((item) => item.id === id);
   if (!content) throw new Error("This content no longer exists.");
@@ -97,11 +102,15 @@ async function publishOrSchedule(
 // Async boundary allows a later API implementation without changing the pages.
 export const draftRepository = {
   async list(): Promise<Draft[]> {
+    const checkAccount = captureAccount();
     await processDue();
+    checkAccount();
     return read().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   },
   async get(id: string): Promise<Draft | undefined> {
+    const checkAccount = captureAccount();
     await processDue();
+    checkAccount();
     return read().find((draft) => draft.id === id);
   },
   async save(
@@ -140,7 +149,7 @@ export const draftRepository = {
     const drafts = read();
     try {
       localStorage.setItem(
-        DRAFT_STORAGE_KEY,
+        accountKey(DRAFT_STORAGE_KEY),
         JSON.stringify(drafts.filter((draft) => draft.id !== id)),
       );
     } catch {

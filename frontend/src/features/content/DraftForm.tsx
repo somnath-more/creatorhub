@@ -8,8 +8,10 @@ import { draftRepository } from "./draftRepository";
 import { getSessionMedia, setSessionMedia } from "./sessionMedia";
 import { MediaField } from "./MediaField";
 import { uploadService } from "./uploadService";
+import { captureAccount } from "../auth/accountScope";
 
 export function DraftForm({ draft }: { draft?: Draft }) {
+  const [checkAccount] = useState(() => captureAccount());
   const navigate = useNavigate();
   const [media, setMedia] = useState(() =>
     draft ? getSessionMedia(draft.id) : {},
@@ -36,6 +38,7 @@ export function DraftForm({ draft }: { draft?: Draft }) {
     setSaveError("");
     if (invalidMedia.thumbnail || invalidMedia.video) return;
     try {
+      checkAccount();
       const metadata = Object.fromEntries(
         Object.entries(media)
           .filter(([, file]) => file)
@@ -45,6 +48,7 @@ export function DraftForm({ draft }: { draft?: Draft }) {
           ]),
       );
       const saved = await draftRepository.save(values, draft?.id, metadata);
+      checkAccount();
       setSessionMedia(saved.id, media);
       navigate("/content", {
         state: { message: draft ? "Draft updated." : "Draft saved." },

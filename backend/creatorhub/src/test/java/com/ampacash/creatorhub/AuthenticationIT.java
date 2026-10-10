@@ -34,6 +34,10 @@ class AuthenticationIT extends DatabaseIntegrationTest {
     private String email() { return UUID.randomUUID() + "@example.com"; }
     private String body(String email, String password) { return mapper.writeValueAsString(Map.of("fullName", "Test Creator", "email", email, "password", password)); }
 
+    private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder loginRequest() throws Exception {
+        var cookie = mvc.perform(get("/api/auth/csrf")).andReturn().getResponse().getCookie("XSRF-TOKEN");
+        return post("/api/auth/login").cookie(cookie).header("X-XSRF-TOKEN", cookie.getValue());
+    }
     @Test void registerLoginAndMeUseHashedPasswordsAndServerOwnedIdentity() throws Exception {
         String email = email();
         var registration = mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body(" " + email.toUpperCase(Locale.ROOT) + " ", password)))
@@ -43,7 +47,7 @@ class AuthenticationIT extends DatabaseIntegrationTest {
         var user = users.findByEmail(email).orElseThrow();
         assertThat(user.getPasswordHash()).isNotEqualTo(password);
         assertThat(passwords.matches(password, user.getPasswordHash())).isTrue();
-        var login = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(body(email, password)))
+        var login = mvc.perform(loginRequest().contentType(MediaType.APPLICATION_JSON).content(body(email, password)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.expiresIn").value(900))
                 .andExpect(header().string("Cache-Control", "no-store")).andReturn();
         String token = mapper.readTree(login.getResponse().getContentAsString()).get("accessToken").asText();
@@ -58,7 +62,7 @@ class AuthenticationIT extends DatabaseIntegrationTest {
         mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body(email.toUpperCase(Locale.ROOT), password)))
                 .andExpect(status().isConflict()).andExpect(content().contentTypeCompatibleWith("application/problem+json"));
         for (String loginEmail : List.of(email, email())) {
-            mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(body(loginEmail, "wrong password")))
+            mvc.perform(loginRequest().contentType(MediaType.APPLICATION_JSON).content(body(loginEmail, "wrong password")))
                     .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.detail").value("Invalid email or password."));
         }
     }
@@ -66,7 +70,7 @@ class AuthenticationIT extends DatabaseIntegrationTest {
     @Test void twoAccountsCannotSelectEachOthersIdentity() throws Exception {
         var first = auth.register(new RegistrationRequest("First", email(), password));
         var second = auth.register(new RegistrationRequest("Second", email(), password));
-        String token = auth.login(new LoginRequest(first.email(), password)).accessToken();
+        String token = auth.login(new LoginRequest(first.email(), password)).response().accessToken();
         mvc.perform(get("/api/me").header("Authorization", "Bearer " + token)
                         .param("userId", second.userId().toString()).param("creatorId", second.creatorId().toString()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.userId").value(first.userId().toString()))

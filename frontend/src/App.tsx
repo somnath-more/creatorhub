@@ -7,10 +7,21 @@ import { VerificationPage } from "./pages/VerificationPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { EditContentPage } from "./pages/EditContentPage";
 import { ContentDetail } from "./features/content/ContentDetail";
+import { AuthProvider } from "./features/auth/AuthProvider";
+import { ProtectedRoute } from "./features/auth/ProtectedRoute";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 
 export default function App() {
+  return <AuthProvider><PortalRoutes /></AuthProvider>;
+}
+
+export function PortalRoutes() {
   return (
     <Routes>
+      <Route path="login" element={<LoginPage />} />
+      <Route path="register" element={<RegisterPage />} />
+      <Route element={<ProtectedRoute />}>
       <Route element={<PortalLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="content" element={<ContentPage />} />
@@ -19,6 +30,7 @@ export default function App() {
         <Route path="content/:id" element={<ContentDetail />} />
         <Route path="verification" element={<VerificationPage />} />
         <Route path="*" element={<NotFoundPage />} />
+      </Route>
       </Route>
     </Routes>
   );

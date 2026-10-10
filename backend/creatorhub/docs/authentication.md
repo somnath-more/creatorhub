@@ -22,7 +22,7 @@ deployment keys in a secret manager. Missing, malformed or short keys fail start
 The key above exists only in this shell and child processes. Never commit it.
 Flyway applies V2 automatically; do not manually recreate existing tables.
 
-Open http://localhost:8080/swagger-ui/index.html.
+For local HTTP also set APP_AUTH_COOKIE_SECURE=false. Open http://localhost:8080/swagger-ui/index.html, then execute GET /api/auth/csrf first. Swagger automatically sends its CSRF cookie value on subsequent writes.
 
 1. Expand `POST /api/auth/register`, select **Try it out**, and enter:
 
@@ -45,20 +45,13 @@ Wrong-password and unknown-email login return the same generic 401.
 Validation errors return 400 with field messages; responses never echo passwords.
 Login responses use `Cache-Control: no-store`.
 
-CLI alternative (no token printed):
-
-```powershell
-$authBody = @{fullName='Demo Creator';email='demo@example.com';password='demo-password-123'} | ConvertTo-Json
-Invoke-RestMethod http://localhost:8080/api/auth/register -Method Post -ContentType application/json -Body $authBody
-$authLoginBody = @{email='demo@example.com';password='demo-password-123'} | ConvertTo-Json
-$authSession = Invoke-RestMethod http://localhost:8080/api/auth/login -Method Post -ContentType application/json -Body $authLoginBody
-Invoke-RestMethod http://localhost:8080/api/me -Headers @{Authorization="Bearer $($authSession.accessToken)"}
-```
+For the updated cookie-aware PowerShell commands, see [session testing](sessions.md).
 
 Remove the dev profile for normal deployment: documentation is disabled by default.
 Use HTTPS and controlled frontend origins. Do not expose the dev profile publicly.
-This milestone has no refresh tokens, token revocation, password reset, email
-verification, login throttling or frontend authentication integration. Logging
-out locally discards the token but cannot revoke it before expiry. Add abuse
+Refresh sessions, current-session logout and frontend authentication are now
+implemented; see sessions.md. There is no password reset, email verification or
+login throttling. Logging
+out revokes the current server session, including its access tokens. Add abuse
 controls before public launch. Identity verification for publishing is separate
 from login and will be implemented in a later PR.
