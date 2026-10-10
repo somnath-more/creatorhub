@@ -1,7 +1,9 @@
 import { apiRequest, jsonRequest } from "../auth/apiRequest";
+import { demoMode } from '../../demo/demoMode';
+import { verificationRepository as localRepository } from '../../demo/localVerificationRepository';
 import { progressSchema, type VerificationProgress } from "./verificationSchema";
 export const VERIFICATION_KEY = "creatorhub.verification.v1";
-export const verificationRepository = {
+const apiRepository = {
   async load(): Promise<VerificationProgress> { return progressSchema.parse(await (await apiRequest("/api/verification")).json()); },
   async save(progress: VerificationProgress, evidence: { documentSelected?: boolean; selfieSelected?: boolean } = {}): Promise<VerificationProgress> {
     const validated=progressSchema.parse(progress);
@@ -14,3 +16,4 @@ export const verificationRepository = {
     return progressSchema.parse(await (await apiRequest("/api/verification/demo-approval",{method:"POST"})).json());
   },
 };
+export const verificationRepository: typeof apiRepository = demoMode ? localRepository : apiRepository;

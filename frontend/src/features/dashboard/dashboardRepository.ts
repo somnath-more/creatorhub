@@ -1,4 +1,6 @@
 import { draftRepository } from "../content/draftRepository";
+import { demoMode } from '../../demo/demoMode';
+import { demoPurchases } from '../../demo/demoPurchases';
 import type { Purchase } from "./dashboardModel";
 
 export type DashboardSnapshot = {
@@ -49,7 +51,7 @@ export const dashboardRepository = {
     const drafts = await draftRepository.list();
     const now = new Date();
     return {
-      purchases: mode === "empty" ? [] : samplePurchases(now),
+      purchases: mode === "empty" ? [] : demoMode ? demoPurchases(now) : samplePurchases(now),
       contentCount: drafts.length,
       now,
     };

@@ -1,94 +1,19 @@
 # CreatorHub frontend
 
-React + TypeScript + Vite creator portal. Authentication is connected to the
-Spring backend. Content and verification progress persist in PostgreSQL; uploads,
-identity checks and analytics remain simulations.
-See [authentication setup](docs/authentication.md) to start both applications.
+React + TypeScript + Vite + Tailwind. See the [root README](../README.md)
+for reviewer setup, demo controls, seeds, persistence and tests.
+
+Run the frontend-only demo in PowerShell:
 
 ```powershell
-npm install
+npm ci
+$env:VITE_DEMO_MODE = 'true'
 npm run dev
-npm test
-npm run lint
-npm run build
 ```
 
-The Vite development server proxies /api to backend port 8080. Direct portal
-routes require login. Follow the backend session instructions for local HTTP
-cookies and production HTTPS configuration.
+Without `VITE_DEMO_MODE=true`, repositories use the Spring API. The Vite dev
+server proxies `/api` to `http://127.0.0.1:8080`. API setup is documented in
+[authentication](docs/authentication.md) and the backend README.
 
-## Vite template reference
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+[Vercel deployment](docs/vercel-deployment.md) uses the same explicit demo flag.
+No JWT, database, mail or R2 secrets belong in frontend environment variables.

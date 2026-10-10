@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { demoMode } from "../demo/demoMode";
+import { DemoControls } from '../demo/DemoControls';
 import { Menu, Play, X } from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
@@ -61,7 +63,7 @@ export function PortalLayout() {
             </p>
             <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-4">
               <span className="hidden max-w-48 truncate text-sm font-semibold sm:block">{state.session?.creator.fullName}</span>
-              <Button disabled={state.status === "signingOut"} onClick={() => void client.logout().catch(() => {})}>{state.status === "signingOut" ? "Signing out…" : "Sign out"}</Button>
+              {!demoMode && <Button disabled={state.status === "signingOut"} onClick={() => void client.logout().catch(() => {})}>{state.status === "signingOut" ? "Signing out…" : "Sign out"}</Button>}
             </div>
             <Button
               aria-label={menuOpen ? "Close navigation" : "Open navigation"}
@@ -92,8 +94,9 @@ export function PortalLayout() {
           tabIndex={-1}
           className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-8 sm:py-10 lg:px-10"
         >
-          <p className="mb-4 text-xs leading-5 text-slate-500">Content and verification progress are saved to your account. Media uploads, identity checks and sales analytics are simulated.</p>
+          <p className="mb-4 text-xs leading-5 text-slate-500">{demoMode ? "Frontend demo: data stays in this browser. No sign-in or backend. Uploads, identity checks and analytics are simulated. Use fictional information; reselect media after reload." : "Content and verification progress are saved to your account. Media uploads, identity checks and sales analytics are simulated."}</p>
           {state.error && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{state.error}</p>}
+          {demoMode && <DemoControls />}
           <EmailVerificationBanner />
           <Outlet />
         </main>

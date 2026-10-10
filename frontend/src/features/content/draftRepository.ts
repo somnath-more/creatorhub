@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { demoMode } from '../../demo/demoMode';
+import { draftRepository as localRepository } from '../../demo/localDraftRepository';
 import { apiRequest, jsonRequest } from "../auth/apiRequest";
 import { ApiError } from "../auth/authClient";
 import { draftFormSchema, draftSchema, priceToCents, type Draft, type DraftInput, type FileMetadata } from "./draftSchema";
@@ -20,7 +22,7 @@ async function publication(id: string, version: number | undefined, scheduledAt?
     throw error;
   }
 }
-export const draftRepository = {
+const apiRepository = {
   async list(): Promise<Draft[]> { return z.array(draftSchema).parse(await (await apiRequest("/api/content")).json()); },
   async get(id: string): Promise<Draft | undefined> {
     try { return draftSchema.parse(await (await apiRequest(`/api/content/${encodeURIComponent(id)}`)).json()); }
@@ -39,3 +41,4 @@ export const draftRepository = {
   publish: (id: string, version?: number) => publication(id,version),
   schedule: (id: string, scheduledAt: string, version?: number) => publication(id,version,scheduledAt),
 };
+export const draftRepository: typeof apiRepository = demoMode ? localRepository : apiRepository;
