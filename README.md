@@ -1,4 +1,4 @@
-# CreatorHub — Creator Portal assessment
+# CreatorHub â€” Creator Portal assessment
 
 React + TypeScript creator portal with a separate Spring Boot monolith. The
 reviewer demo runs **entirely in the browser**; no backend, Docker, database,
@@ -16,7 +16,7 @@ out `deployment-vercel`; after merging, use `main`. Repository owners must ensur
 reviewers can access the repository (public visibility or explicit collaborator
 access); the demo URL does not grant source access.
 
-## Local setup — frontend-only demo
+## Local setup â€” frontend-only demo
 
 Prerequisite: Node.js 22.14+ (Node 24 LTS recommended) and npm. Install Git to
 clone. No paid account or environment secret is needed.
@@ -51,7 +51,7 @@ configured with `VITE_DEMO_MODE=true`.
 ## What reviewers can try
 
 - Dashboard: total revenue, revenue this month, content and purchase counts,
-  revenue chart, purchase search/status filter/date sorting/pagination.
+  revenue chart, purchase search by content/country/status and pagination (newest first).
 - Content: search, status filters, sorting, thumbnail placeholders, price,
   views/purchases/revenue, view/edit/delete with confirmation.
 - Create/edit: required title/description, USD price validation, thumbnail/video
