@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:vercel": "npm run build && node scripts/vercel-output.mjs",
+    "test:deployment": "node --test scripts/vercel-output.check.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run"
