@@ -58,4 +58,17 @@ Known limits: strict replay protection can require login after simultaneous
 cross-tab refresh or a lost response; expired-session pruning is documented but
 not scheduled. Demo storage scoping is not server authorization. Remaining two
 PRs cover recovery/email verification and backend content/publishing.
-Implementation is committed locally; pushing and GitHub PR creation await approval.
+## Local startup follow-up
+
+After implementation, local startup exposed a conflicting PostgreSQL instance on
+5432 and a missing signing key. Default the dedicated Compose database and Spring
+datasource to 127.0.0.1:5433, retaining environment overrides. Import an optional
+git-ignored .env.local.properties outside packaged resources for persistent local
+signing-key and HTTP-cookie settings. Local database password defaults are for
+development; shared environments must override them.
+
+Compose configuration validation passed. The dedicated database is healthy and
+accepts the configured credentials. A fresh Spring startup using the ignored
+local key returned health UP and readiness UP. The user confirmed the application
+works and authorized pushing/opening the PR. The generated signing key remains
+untracked; unrelated root README/docs changes remain outside the PR.

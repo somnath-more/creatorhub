@@ -4,9 +4,10 @@ services:
     environment:
       POSTGRES_DB: creatorhub
       POSTGRES_USER: creatorhub
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in your environment or local .env file}
+      # Local development default; override for any shared environment.
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-creatorhub}
     ports:
-      - "127.0.0.1:${DATABASE_PORT:-5432}:5432"
+      - "127.0.0.1:${DATABASE_PORT:-5433}:5432"
     volumes:
       - creatorhub-postgres:/var/lib/postgresql/data
     healthcheck:

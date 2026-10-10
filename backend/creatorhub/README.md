@@ -45,6 +45,12 @@ read the shell variable. Compose can also read `.env`, but Spring Boot does not
 automatically import that file: set the application environment explicitly.
 `.env.example` documents the keys; actual `.env` files are ignored.
 
+For persistent local settings, Spring also imports `.env.local.properties` from
+the backend working directory (or `backend/creatorhub` when launched from the
+repository root). This git-ignored file can contain `app.jwt.secret` and
+`app.auth.cookie-secure=false`. Keep it outside `src/main/resources` so the signing
+key is not packaged in the application JAR. Environment settings take precedence.
+
 ```powershell
 Invoke-RestMethod http://localhost:8080/actuator/health
 Invoke-RestMethod http://localhost:8080/actuator/health/liveness
@@ -58,16 +64,16 @@ before Hibernate validates the schema. Existing databases are never auto-baselin
 
 | Variable | Default / requirement |
 | --- | --- |
-| `DATABASE_URL` | `jdbc:postgresql://localhost:5432/creatorhub` |
+| `DATABASE_URL` | `jdbc:postgresql://127.0.0.1:5433/creatorhub` |
 | `DATABASE_USERNAME` | `creatorhub` |
-| `DATABASE_PASSWORD` | Required; no application default |
+| `DATABASE_PASSWORD` | Local development default `creatorhub`; override for shared environments |
 | `DATABASE_POOL_SIZE` | `10` |
 | `APP_JWT_SECRET` | Required Base64 encoding of at least 32 random bytes |
 | `SPRING_PROFILES_ACTIVE` | Set `dev` to enable Swagger; disabled by default |
 | `APP_AUTH_COOKIE_SECURE` | `true`; explicitly use `false` for local HTTP only |
 | `SERVER_PORT` | `8080` |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` |
-| `DATABASE_PORT` | Compose host port, `5432`; update `DATABASE_URL` if changed |
+| `DATABASE_PORT` | Compose host port, `5433`; update `DATABASE_URL` if changed |
 
 To use an existing PostgreSQL instance, set the datasource variables and omit
 Compose. Use a dedicated database. Deployed environments need managed secrets,
