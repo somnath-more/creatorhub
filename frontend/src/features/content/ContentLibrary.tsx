@@ -1,18 +1,36 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
-import { Film, Plus, Trash2 } from "lucide-react";
+import { Film, Plus } from "lucide-react";
 import { Button } from "../../components/atoms/Button";
 import { draftRepository } from "./draftRepository";
-import { formatPrice, type Draft } from "./draftSchema";
-import { getSessionMedia, removeSessionMedia } from "./sessionMedia";
-import { ThumbnailPreview } from "./ThumbnailPreview";
-import { ContentStatus } from "./ContentStatus";
+import type { Draft } from "./draftSchema";
+import { removeSessionMedia } from "./sessionMedia";
+import { ContentPerformanceTable } from "./ContentPerformanceTable";
+import {
+  contentAnalyticsRepository,
+  type AnalyticsMode,
+} from "./contentAnalyticsRepository";
+import { sortContent, type MetricsById } from "./contentPerformance";
 
 export function ContentLibrary() {
   const location = useLocation();
   const [params, setParams] = useSearchParams();
   const query = params.get("q") ?? "";
   const status = params.get("status") ?? "ALL";
+  const requestedSort = params.get("sort") ?? "newest";
+  const sort = ["newest", "revenue", "purchases", "views"].includes(requestedSort)
+    ? requestedSort
+    : "newest";
+  const requestedAnalytics = params.get("analytics");
+  const analyticsMode: AnalyticsMode = requestedAnalytics === "sample" || requestedAnalytics === "error"
+    ? requestedAnalytics
+    : "empty";
+  const [analytics, setAnalytics] = useState<{
+    content: Draft[];
+    mode: AnalyticsMode;
+    metrics?: MetricsById;
+    error?: string;
+  }>();
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -45,6 +63,29 @@ export function ContentLibrary() {
     };
   }, [reload]);
 
+  useEffect(() => {
+    let active = true;
+    contentAnalyticsRepository
+      .load(drafts, analyticsMode)
+      .then((metrics) => {
+        if (active) setAnalytics({ content: drafts, mode: analyticsMode, metrics });
+      })
+      .catch((reason) => {
+        if (active) setAnalytics({
+          content: drafts,
+          mode: analyticsMode,
+          error: reason instanceof Error ? reason.message : "Analytics could not be loaded.",
+        });
+      });
+    return () => {
+      active = false;
+    };
+  }, [drafts, analyticsMode, reload]);
+  const currentAnalytics = analytics?.content === drafts && analytics.mode === analyticsMode
+    ? analytics
+    : undefined;
+  const metrics = currentAnalytics?.metrics;
+
   const hasScheduled = drafts.some((content) => content.status === "SCHEDULED");
   useEffect(() => {
     const refresh = () => setReload((value) => value + 1);
@@ -55,11 +96,13 @@ export function ContentLibrary() {
       window.removeEventListener("focus", refresh);
     };
   }, [hasScheduled]);
-  const visibleContent = drafts.filter(
-    (content) =>
+  const visibleContent = sortContent(
+    drafts.filter((content) =>
       content.title.toLowerCase().includes(query.trim().toLowerCase()) &&
-      (!["DRAFT", "PUBLISHED", "SCHEDULED"].includes(status) ||
-        content.status === status),
+      (!["DRAFT", "PUBLISHED", "SCHEDULED"].includes(status) || content.status === status),
+    ),
+    metrics ?? {},
+    sort,
   );
 
   async function remove(id: string) {
@@ -69,7 +112,7 @@ export function ContentLibrary() {
       removeSessionMedia(id);
       setDrafts((previous) => previous.filter((draft) => draft.id !== id));
       setConfirmId(null);
-      setMessage("Draft deleted.");
+      setMessage("Content deleted.");
       setError("");
     } catch (reason) {
       setError(
@@ -104,12 +147,44 @@ export function ContentLibrary() {
           Create content
         </Link>
       </div>
+      <div className="mt-4 flex flex-wrap items-center gap-4">
+        <div>
+          <label htmlFor="content-sort" className="mb-1 block text-xs font-medium text-slate-600">Sort content</label>
+          <select id="content-sort" value={sort} onChange={(event) => setParams((previous) => { previous.set("sort", event.target.value); return previous; }, { replace: true })} className="min-h-11 max-w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
+            <option value="newest">Newest first</option>
+            <option value="revenue">Highest revenue</option>
+            <option value="purchases">Most purchases</option>
+            <option value="views">Most views</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="content-analytics" className="mb-1 block text-xs font-medium text-slate-600">Demo analytics</label>
+          <select id="content-analytics" value={analyticsMode} onChange={(event) => setParams((previous) => { previous.set("analytics", event.target.value); return previous; }, { replace: true })} className="min-h-11 max-w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
+            <option value="empty">No activity</option>
+            <option value="sample">Sample activity</option>
+            <option value="error">Simulate analytics error</option>
+          </select>
+        </div>
+      </div>
+      <p className="mt-3 text-xs leading-5 text-slate-500">
+        {analyticsMode === "sample"
+          ? "Sample analytics: synthetic activity for published content only. Draft and scheduled content show zero. These fixtures are separate from dashboard sample purchases."
+          : "Demo analytics only. No activity shows zero metrics; no live views or payments are tracked."}
+        {" "}Revenue is gross USD from completed purchase amounts, including historical prices; pending and failed purchases are excluded.
+      </p>
+      {!loading && !error && !currentAnalytics && <p role="status" className="mt-4 text-sm text-slate-500">Loading performance…</p>}
+      {!loading && !error && currentAnalytics?.error && (
+        <div role="alert" className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+          <p>{currentAnalytics.error} Metrics are unavailable; your content is still accessible.</p>
+          <Button className="mt-3" onClick={() => setReload(value => value + 1)}>Retry analytics</Button>
+        </div>
+      )}
       <p className="mt-6 rounded-xl border border-violet-100 bg-violet-50 p-4 text-sm leading-6 text-violet-900">
         Local demo: drafts are saved in this browser only. Files stay in memory
         until a reload; their details remain saved.
       </p>
       <div className="mt-5 flex flex-wrap gap-4">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
           <label htmlFor="content-search" className="sr-only">
             Search content
           </label>
@@ -216,111 +291,16 @@ export function ContentLibrary() {
             No matching content
           </p>
         )}
-      <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {visibleContent.map((draft) => {
-          const thumbnail = getSessionMedia(draft.id).thumbnail;
-          return (
-            <article
-              key={draft.id}
-              className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white"
-            >
-              <div className="flex aspect-video items-center justify-center bg-slate-100">
-                {thumbnail ? (
-                  <ThumbnailPreview
-                    file={thumbnail}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="p-4 text-center text-slate-500">
-                    <Film size={30} className="mx-auto" aria-hidden="true" />
-                    <p className="mt-2 text-xs">
-                      {draft.thumbnail
-                        ? "Reselect thumbnail to preview"
-                        : "No thumbnail selected"}
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <ContentStatus status={draft.status} />
-                  <span className="text-sm font-semibold">
-                    {formatPrice(draft.priceCents)}
-                  </span>
-                </div>
-                <h2 className="mt-3 break-words text-lg font-semibold">
-                  {draft.title}
-                </h2>
-                <p className="mt-2 line-clamp-2 break-words text-sm leading-6 text-slate-500">
-                  {draft.description}
-                </p>
-                <p className="mt-3 break-all text-xs text-slate-500">
-                  {draft.video
-                    ? `Video: ${draft.video.name}`
-                    : "No video selected"}
-                </p>
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <Link
-                    to={`/content/${draft.id}`}
-                    aria-label={`View ${draft.title}`}
-                    className="inline-flex min-h-11 items-center rounded-xl bg-violet-50 px-4 text-sm font-semibold text-violet-700"
-                  >
-                    View
-                  </Link>
-                  <Link
-                    to={`/content/${draft.id}/edit`}
-                    aria-label={`Edit ${draft.title}`}
-                    className="inline-flex min-h-11 items-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    {draft.status === "DRAFT" ? "Edit draft" : "Edit content"}
-                  </Link>
-                  <Button
-                    aria-label={`Delete ${draft.title}`}
-                    disabled={deleting}
-                    onClick={() => {
-                      setConfirmId(draft.id);
-                      setMessage("");
-                    }}
-                    variant="danger"
-                  >
-                    <Trash2 size={16} aria-hidden="true" />
-                    Delete
-                  </Button>
-                </div>
-                {confirmId === draft.id && (
-                  <section
-                    role="group"
-                    aria-label={`Confirm deletion of ${draft.title}`}
-                    className="mt-4 rounded-xl border border-red-100 bg-red-50 p-4"
-                  >
-                    <p className="text-sm leading-6 text-red-900">
-                      Delete this content? This action cannot be undone and
-                      cancels any scheduled publication.
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button
-                        disabled={deleting}
-                        onClick={() => setConfirmId(null)}
-                      >
-                        {draft.status === "DRAFT"
-                          ? "Keep draft"
-                          : "Keep content"}
-                      </Button>
-                      <Button
-                        disabled={deleting}
-                        onClick={() => void remove(draft.id)}
-                        variant="danger"
-                      >
-                        {deleting ? "Deleting…" : "Confirm delete"}
-                      </Button>
-                    </div>
-                  </section>
-                )}
-              </div>
-            </article>
-          );
-        })}
-      </div>
+      {!loading && !error && visibleContent.length > 0 && (
+        <ContentPerformanceTable
+          content={visibleContent}
+          metrics={metrics}
+          confirmId={confirmId}
+          deleting={deleting}
+          onConfirm={(id) => { setConfirmId(id); setMessage(""); }}
+          onDelete={(id) => void remove(id)}
+        />
+      )}
     </>
   );
 }
