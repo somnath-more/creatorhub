@@ -2,6 +2,13 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { deploymentConfig } from './vercel-output.mjs'
 
+test('frontend demo needs no backend and never proxies API requests', () => {
+  const config = deploymentConfig(undefined, true)
+  assert.equal(config.routes[0].status, 404)
+  assert.equal(config.routes[0].dest, undefined)
+  assert.equal(config.routes.at(-1).dest, '/index.html')
+})
+
 test('deployment rejects missing, insecure and malformed backend origins', () => {
   for (const value of [undefined, '', 'http://api.example.com', 'https://localhost', 'https://127.0.0.1', 'https://user:password@api.example.com', 'https://api.example.com/api', 'https://api.example.com?q=1', 'https://api.example.com/#fragment']) {
     assert.throws(() => deploymentConfig(value), /BACKEND_URL/)
