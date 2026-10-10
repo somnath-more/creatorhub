@@ -51,38 +51,38 @@ Paths below are relative to `backend/creatorhub`.
 
 **Interfaces:** `Creator` maps the `creators` table; `CreatorRepository extends JpaRepository<Creator, UUID>` exposes persistence. No public service API is introduced yet.
 
-- [ ] Add a PostgreSQL integration test asserting Flyway applies V1, a creator profile persists and reloads, and duplicate principal references fail.
-- [ ] Run the test and confirm missing schema/dependencies cause the expected failure. If Docker remains unavailable, record that prerequisite and continue independent web work.
-- [ ] Add Data JPA, PostgreSQL, Flyway PostgreSQL support, and test dependencies through Boot management. Configure an explicit integration-test Maven profile.
-- [ ] Implement UUID identity, unique non-null principal reference, and creation/update timestamps in V1 and the entity mapping. Let PostgreSQL enforce constraints; Hibernate validates the schema.
-- [ ] Add Compose with a pinned PostgreSQL major version and localhost-bound port, environment-driven datasource settings, and ignored local credentials.
-- [ ] Run integration verification against PostgreSQL; confirm Flyway and repository assertions pass before claiming database validation.
-- [ ] Commit the database foundation, excluding generated artifacts and secrets.
+- [x] Add a PostgreSQL integration test asserting Flyway applies V1, a creator profile persists and reloads, and duplicate principal references fail.
+- [x] Run the test and confirm missing schema/dependencies cause the expected failure. If Docker remains unavailable, record that prerequisite and continue independent web work.
+- [x] Add Data JPA, PostgreSQL, Flyway PostgreSQL support, and test dependencies through Boot management. Configure an explicit integration-test Maven profile.
+- [x] Implement UUID identity, unique non-null principal reference, and creation/update timestamps in V1 and the entity mapping. Let PostgreSQL enforce constraints; Hibernate validates the schema.
+- [x] Add Compose with a pinned PostgreSQL major version and localhost-bound port, environment-driven datasource settings, and ignored local credentials.
+- [x] Run integration verification against PostgreSQL; confirm Flyway and repository assertions pass before claiming database validation.
+- [x] Commit the database foundation, excluding generated artifacts and secrets.
 
 ## Task 2: HTTP errors, security, CORS, and health
 
 **Interfaces:** `FieldViolation(String field, String message)` represents validation details. `ApiExceptionHandler` returns `ProblemDetail`; `ApiProblemWriter` writes the same shape for security failures. `SecurityConfig` provides `SecurityFilterChain` and `CorsConfigurationSource` beans using `CorsProperties`.
 
-- [ ] Write web tests for invalid DTO fields, malformed JSON, and unexpected errors through a test-only controller. Assert status, `application/problem+json`, standard problem fields, and safe messages.
-- [ ] Write tests allowing exact configured localhost origins and rejecting another origin, with no wildcard or credentialed CORS.
-- [ ] Write tests for public health, denied application routes, JSON security errors, and no generated-login redirect. Separate MVC handler tests from security tests so test routes need not become public production APIs.
-- [ ] Run these tests and confirm their expected failures before implementing the relevant behavior.
-- [ ] Implement error translation in `exception`, DTO details in `dto`, and configuration in `config`; use constructor injection.
-- [ ] Add Actuator health with public details disabled and liveness/readiness groups. Include database health in readiness; keep other endpoints unexposed.
-- [ ] Run web tests independently of database infrastructure, then verify actual database-backed readiness when PostgreSQL is available.
-- [ ] Commit HTTP infrastructure and its tests.
+- [x] Write web tests for invalid DTO fields, malformed JSON, and unexpected errors through a test-only controller. Assert status, `application/problem+json`, standard problem fields, and safe messages.
+- [x] Write tests allowing exact configured localhost origins and rejecting another origin, with no wildcard or credentialed CORS.
+- [x] Write tests for public health, denied application routes, JSON security errors, and no generated-login redirect. Separate MVC handler tests from security tests so test routes need not become public production APIs.
+- [x] Run these tests and confirm their expected failures before implementing the relevant behavior.
+- [x] Implement error translation in `exception`, DTO details in `dto`, and configuration in `config`; use constructor injection.
+- [x] Add Actuator health with public details disabled and liveness/readiness groups. Include database health in readiness; keep other endpoints unexposed.
+- [x] Run web tests independently of database infrastructure, then verify actual database-backed readiness when PostgreSQL is available.
+- [x] Commit HTTP infrastructure and its tests.
 
 ## Task 3: Layer contracts, startup guide, and final verification
 
 **Interfaces:** No additional runtime APIs. Documentation defines Controller -> Service interface -> ServiceImpl -> Repository -> Model, DTO boundaries, and future authentication responsibilities.
 
-- [ ] Document reserved controller/service/implementation layers using package documentation. Do not add placeholder business classes.
-- [ ] Replace the generated context-only test with meaningful coverage from the previous tasks; keep full application startup verification in the PostgreSQL integration suite.
-- [ ] Document PowerShell startup: `docker compose up -d`, `.\mvnw.cmd spring-boot:run`, health requests, environment settings, unit/web verification, and PostgreSQL integration verification.
-- [ ] Run `.\mvnw.cmd verify` for the default suite and `.\mvnw.cmd verify -Pintegration` for real database tests. Record exact results and any infrastructure blocker.
-- [ ] Confirm production packaging succeeds, no secrets/build outputs are tracked, and the frontend/root files are unchanged by this PR.
-- [ ] Review the branch diff and commit only backend work. Summarize remaining authentication and CRUD work, then ask before pushing.
+- [x] Document reserved controller/service/implementation layers using package documentation. Do not add placeholder business classes.
+- [x] Replace the generated context-only test with meaningful coverage from the previous tasks; keep full application startup verification in the PostgreSQL integration suite.
+- [x] Document PowerShell startup: `docker compose up -d`, `.\mvnw.cmd spring-boot:run`, health requests, environment settings, unit/web verification, and PostgreSQL integration verification.
+- [x] Run `.\mvnw.cmd verify` for the default suite and `.\mvnw.cmd verify -Pintegration` for real database tests. Record exact results and any infrastructure blocker.
+- [x] Confirm production packaging succeeds, no secrets/build outputs are tracked, and the frontend/root files are unchanged by this PR.
+- [x] Review the branch diff and commit only backend work. Summarize remaining authentication and CRUD work, then ask before pushing.
 
 ## Execution
 
-Recommended: implement directly in this session. The tasks share configuration and need sequential verification; this scope does not need parallel agents. Implementation begins after the user reviews this plan.
+Recommended: implement directly in this session. The tasks share configuration and need sequential verification; this scope does not need parallel agents. The user approved implementation and opening the PR. Completed inline; review and verification recorded in backend-foundation-verification.md.

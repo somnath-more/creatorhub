@@ -52,8 +52,8 @@ Resolve versions through Spring Boot dependency management where available.
 ## Database and migrations
 
 Use environment-based datasource configuration and PostgreSQL in local Docker
-Compose. Development credentials are explicit local-only defaults; deployed
-environments must supply credentials. Ignore local secret/environment files.
+Compose. The database password is required with no application default; local Compose
+and Spring read it from the environment. Deployed environments must supply credentials. Ignore local secret/environment files.
 
 Flyway owns schema changes. Disable Hibernate schema creation and use validation.
 The initial migration creates a minimal creator profile table with a UUID primary
