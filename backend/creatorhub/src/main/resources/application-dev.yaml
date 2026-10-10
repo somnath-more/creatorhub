@@ -4,3 +4,5 @@ springdoc:
   swagger-ui:
     enabled: true
     persist-authorization: false
+    csrf:
+      enabled: true

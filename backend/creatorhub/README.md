@@ -3,7 +3,8 @@
 Java 17 / Spring Boot 4.1.1 monolith with Maven Wrapper, PostgreSQL 17, Flyway,
 JPA, Validation, Security, and Actuator. Includes registration, JWT login,
 current-creator identity, and development Swagger testing. Frontend integration
-and content APIs are separate milestones. See [authentication setup](docs/authentication.md).
+now includes refresh sessions, logout and protected React routes. Content APIs
+remain separate. See [session setup](docs/sessions.md).
 
 ## Layers
 
@@ -35,6 +36,7 @@ $authRng = [Security.Cryptography.RandomNumberGenerator]::Create()
 $authRng.GetBytes($authKeyBytes)
 $authRng.Dispose()
 $env:APP_JWT_SECRET = [Convert]::ToBase64String($authKeyBytes)
+$env:APP_AUTH_COOKIE_SECURE = 'false' # Local HTTP only; deployment default is true.
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -62,6 +64,7 @@ before Hibernate validates the schema. Existing databases are never auto-baselin
 | `DATABASE_POOL_SIZE` | `10` |
 | `APP_JWT_SECRET` | Required Base64 encoding of at least 32 random bytes |
 | `SPRING_PROFILES_ACTIVE` | Set `dev` to enable Swagger; disabled by default |
+| `APP_AUTH_COOKIE_SECURE` | `true`; explicitly use `false` for local HTTP only |
 | `SERVER_PORT` | `8080` |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` |
 | `DATABASE_PORT` | Compose host port, `5432`; update `DATABASE_URL` if changed |
@@ -73,16 +76,18 @@ appropriate database privileges/TLS, and explicitly configured frontend origins.
 ## Security and API errors
 
 GET requests to the three health endpoints and POST registration/login are public.
-GET `/api/me` requires a valid JWT with creator scope. Swagger routes are public
+GET `/api/auth/csrf` and POST refresh/logout are public with CSRF on cookie writes.
+GET `/api/me` requires a valid JWT with creator scope and an active server session. Swagger routes are public
 only when documentation is enabled. Other routes are denied. CORS allows exact HTTP(S)
-origins and explicit methods/headers, with no wildcard origins or credentials.
+origins and explicit methods/headers, with credentials allowed and no wildcard origins.
 Invalid origin configuration fails validation at startup.
 
 Accounts use BCrypt password hashes in PostgreSQL. An empty framework user store
 suppresses generated development accounts; application login uses AuthService.
-Authentication uses explicit Bearer headers, with no form/basic login, cookies,
-sessions, or request cache. CSRF is disabled for this transport; cookie-based
-authentication would require revisiting that configuration.
+Business authentication uses explicit Bearer headers and no HTTP session or
+form/basic login. Login, refresh and logout additionally use an HttpOnly refresh
+cookie with CSRF protection. Exact-origin credentialed CORS is enabled. Access
+tokens last 15 minutes; sessions last at most seven days and logout revokes them.
 
 MVC validation errors, malformed JSON, unexpected failures, and security
 authentication/access-denied errors use RFC 9457 `application/problem+json`.

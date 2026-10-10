@@ -3,13 +3,14 @@ import {
   progressSchema,
   type VerificationProgress,
 } from "./verificationSchema";
+import { accountKey, captureAccount } from "../auth/accountScope";
 
 export const VERIFICATION_KEY = "creatorhub.verification.v1";
 
 export const verificationRepository = {
   async load(): Promise<VerificationProgress> {
     try {
-      const raw = localStorage.getItem(VERIFICATION_KEY);
+      const raw = localStorage.getItem(accountKey(VERIFICATION_KEY));
       return raw === null
         ? structuredClone(emptyProgress)
         : progressSchema.parse(JSON.parse(raw));
@@ -22,7 +23,7 @@ export const verificationRepository = {
   async save(progress: VerificationProgress): Promise<VerificationProgress> {
     const validated = progressSchema.parse(progress);
     try {
-      localStorage.setItem(VERIFICATION_KEY, JSON.stringify(validated));
+      localStorage.setItem(accountKey(VERIFICATION_KEY), JSON.stringify(validated));
       return validated;
     } catch {
       throw new Error(
@@ -31,7 +32,9 @@ export const verificationRepository = {
     }
   },
   async simulateApproval(): Promise<VerificationProgress> {
+    const checkAccount = captureAccount();
     const progress = await verificationRepository.load();
+    checkAccount();
     if (progress.status !== "SUBMITTED")
       throw new Error(
         "Verification must be submitted before simulating approval.",

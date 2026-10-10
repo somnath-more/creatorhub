@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.*;
 import java.util.UUID;
 
 @RestController
@@ -17,7 +18,7 @@ public class CreatorController {
     public CreatorController(CreatorService creators) { this.creators = creators; }
     @GetMapping("/api/me")
     @Operation(summary = "Get your creator profile", security = @SecurityRequirement(name = "bearerAuth"))
-    public CreatorProfile me(@AuthenticationPrincipal Jwt jwt) {
-        return creators.current(UUID.fromString(jwt.getSubject()));
+    public ResponseEntity<CreatorProfile> me(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(creators.current(UUID.fromString(jwt.getSubject())));
     }
 }

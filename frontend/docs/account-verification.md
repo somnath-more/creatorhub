@@ -34,8 +34,9 @@ Leaving the page or reloading discards them. A resumed identity check returns to
 document selection so the creator can reselect sample evidence. Submission clears
 the in-memory evidence. The submitted confirmation survives reload.
 
-This is a single-browser, single-user demo with no account isolation or cross-tab
-synchronization. Use fictional information and sample files only. Production identity
+Progress is now scoped to the signed-in account through the authentication PR;
+there is no cross-tab synchronization or backend verification storage. See
+[authentication](authentication.md). Use fictional information and sample files only. Production identity
 data requires a separate secure backend and retention policy; browser storage here
 is not a production identity-data store.
 

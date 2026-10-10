@@ -11,7 +11,7 @@ import org.springframework.context.annotation.*;
 public class OpenApiConfig {
     @Bean OpenAPI creatorHubOpenApi() {
         return new OpenAPI().info(new Info().title("CreatorHub API").version("v1")
-                .description("Register, log in, then use Authorize with your access token to call /api/me."))
+                .description("Register, call GET /api/auth/csrf, then log in. Cookie writes require X-XSRF-TOKEN. Use Authorize with the access token for /api/me. Logout revokes the current session."))
                 .components(new Components().addSecuritySchemes("bearerAuth", new SecurityScheme()
                         .type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")));
     }

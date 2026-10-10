@@ -3,6 +3,7 @@ import { Menu, Play, X } from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { PortalNavigation } from "../components/molecules/PortalNavigation";
+import { useAuth } from "../features/auth/authContext";
 
 function Brand() {
   return (
@@ -20,6 +21,7 @@ function Brand() {
 }
 
 export function PortalLayout() {
+  const { state, client } = useAuth();
   const location = useLocation();
   const [openPath, setOpenPath] = useState<string | null>(null);
   const menuOpen = openPath === location.pathname;
@@ -56,9 +58,10 @@ export function PortalLayout() {
             <p className="hidden text-sm font-medium text-slate-500 lg:block">
               Your creator workspace
             </p>
-            <span className="hidden rounded-full bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 lg:inline-flex">
-              Creator portal
-            </span>
+            <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-4">
+              <span className="hidden max-w-48 truncate text-sm font-semibold sm:block">{state.session?.creator.fullName}</span>
+              <Button disabled={state.status === "signingOut"} onClick={() => void client.logout().catch(() => {})}>{state.status === "signingOut" ? "Signing out…" : "Sign out"}</Button>
+            </div>
             <Button
               aria-label={menuOpen ? "Close navigation" : "Open navigation"}
               aria-expanded={menuOpen}
@@ -88,6 +91,8 @@ export function PortalLayout() {
           tabIndex={-1}
           className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-8 sm:py-10 lg:px-10"
         >
+          <p className="mb-4 text-xs leading-5 text-slate-500">Content, uploads, verification and sales currently use account-scoped browser demo data.</p>
+          {state.error && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{state.error}</p>}
           <Outlet />
         </main>
       </div>

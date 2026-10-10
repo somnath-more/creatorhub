@@ -1,4 +1,22 @@
-# React + TypeScript + Vite
+# CreatorHub frontend
+
+React + TypeScript + Vite creator portal. Authentication is connected to the
+Spring backend; content, uploads, verification and analytics remain browser demos.
+See [authentication setup](docs/authentication.md) to start both applications.
+
+```powershell
+npm install
+npm run dev
+npm test
+npm run lint
+npm run build
+```
+
+The Vite development server proxies /api to backend port 8080. Direct portal
+routes require login. Follow the backend session instructions for local HTTP
+cookies and production HTTPS configuration.
+
+## Vite template reference
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

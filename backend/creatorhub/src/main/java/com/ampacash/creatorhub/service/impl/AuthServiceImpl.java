@@ -16,12 +16,12 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository users;
     private final CreatorRepository creators;
     private final PasswordEncoder passwords;
-    private final TokenService tokens;
+    private final SessionService sessions;
     private final CreatorService profiles;
     private final String dummyHash;
-    public AuthServiceImpl(UserRepository users, CreatorRepository creators, PasswordEncoder passwords, TokenService tokens, CreatorService profiles) {
+    public AuthServiceImpl(UserRepository users, CreatorRepository creators, PasswordEncoder passwords, SessionService sessions, CreatorService profiles) {
         this.users = users; this.creators = creators; this.passwords = passwords;
-        this.tokens = tokens; this.profiles = profiles;
+        this.sessions = sessions; this.profiles = profiles;
         this.dummyHash = passwords.encode("dummy-login-comparison-password");
     }
     @Override @Transactional
@@ -34,13 +34,12 @@ public class AuthServiceImpl implements AuthService {
         creators.saveAndFlush(new Creator("local:" + user.getId()));
         return profiles.current(user.getId());
     }
-    @Override @Transactional(readOnly = true)
-    public TokenResponse login(LoginRequest request) {
+    @Override @Transactional
+    public SessionGrant login(LoginRequest request) {
         var user = users.findByEmail(request.email());
         boolean matches = passwords.matches(request.password(), user.map(User::getPasswordHash).orElse(dummyHash));
         if (user.isEmpty() || !matches) throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
-        var profile = profiles.current(user.get().getId());
-        return new TokenResponse(tokens.issue(user.get().getId()), "Bearer", 900, profile);
+        return sessions.start(user.get().getId());
     }
     private ApiException duplicate() { return new ApiException(HttpStatus.CONFLICT, "An account with this email already exists."); }
 }
