@@ -1,6 +1,6 @@
 # Backend foundation design
 
-Status: proposed for review before implementation.
+Status: approved in conversation, updated to the user's requested layered packages.
 
 ## Outcome and scope
 
@@ -17,27 +17,35 @@ frontend persistence unchanged.
 
 ## Approach and trade-offs
 
-Use a feature-organized monolith with PostgreSQL and Flyway. This keeps one
+Use a layered monolith with PostgreSQL and Flyway. This keeps one
 deployment and transaction boundary while allowing content, verification, and
 analytics to grow independently inside the application.
 
-A shared controller/service/repository folder structure is initially simpler but
-scatters each feature as the portal grows. Microservices introduce deployment,
-network, and consistency overhead that this assessment does not need. Neither
-alternative is proposed for this milestone.
+The user selected controller/service/model/DTO/repository layers. Group future
+feature-specific classes by clear names inside these layers; introduce feature
+subpackages if their size warrants it. Microservices introduce deployment,
+network, and consistency overhead that this assessment does not need.
 
 ## Packages and dependencies
 
-- `auth`: boundary reserved for future registration/token authentication.
-- `creator`: creator identity and profile persistence boundary.
-- `content`: future creator-owned content APIs.
-- `verification`: future submission and publishing eligibility rules.
-- `analytics`: future dashboard and content aggregate APIs.
-- `common.api`: exception translation and API error contracts.
-- `config`: security and CORS configuration.
+- `controller`: HTTP endpoints; calls service interfaces and uses DTOs.
+- `service`: business service interfaces.
+- `service.impl`: implementations; business rules and transaction boundaries.
+- `model`: JPA entities, starting with the minimal creator profile.
+- `dto`: API request/response types and validation error details.
+- `config`: application security, CORS, and configuration properties.
+- `exception`: exception translation and the ProblemDetail contract.
+- `repository`: Spring Data persistence interfaces.
+
+Dependency direction: Controller -> Service -> ServiceImpl -> Repository -> Model.
+Controllers must not access repositories directly or expose JPA entities as API
+responses. Validation annotations belong on future request DTOs; business rules
+belong in service implementations. Register implementations through Spring
+dependency injection and use constructor injection for required collaborators.
 
 Document reserved packages using package documentation; do not create placeholder
-controllers or empty service classes. Use Spring MVC, Validation, Data JPA,
+controllers or empty service classes. Auth, creator, content, verification, and
+analytics business endpoints remain later milestones. Use Spring MVC, Validation, Data JPA,
 PostgreSQL JDBC, Flyway's PostgreSQL support, Actuator, and Spring Security.
 Resolve versions through Spring Boot dependency management where available.
 
