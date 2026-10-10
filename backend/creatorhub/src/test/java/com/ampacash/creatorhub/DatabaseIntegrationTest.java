@@ -11,6 +11,7 @@ abstract class DatabaseIntegrationTest {
     protected com.ampacash.creatorhub.service.AccountMailService accountMail;
     private static PostgreSQLContainer database;
     @DynamicPropertySource static synchronized void database(DynamicPropertyRegistry registry) {
+        registry.add("app.publication.poll-ms", () -> 3600000);
         registry.add("app.auth.cookie-secure", () -> true);
         String external = System.getenv("TEST_DATABASE_URL");
         if (external != null && !external.isBlank()) {

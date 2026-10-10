@@ -1,3 +1,4 @@
+import "../../test/useDemoRepositories";
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { draftRepository, DRAFT_STORAGE_KEY } from "./draftRepository";

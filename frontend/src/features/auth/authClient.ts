@@ -10,7 +10,8 @@ export type AuthState = { status: "initializing" | "authenticated" | "anonymous"
   session: AuthSession | null; error?: string };
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) { super(message); this.status = status; }
+  code?: string;
+  constructor(message: string, status: number, code?: string) { super(message); this.status = status; this.code = code; }
 }
 async function failure(response: Response): Promise<never> {
   let message = "The request could not be completed. Please try again.";

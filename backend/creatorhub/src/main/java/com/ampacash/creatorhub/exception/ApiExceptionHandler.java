@@ -17,7 +17,14 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ProblemDetail> api(ApiException exception, WebRequest request) {
-        return ResponseEntity.status(exception.getStatus()).body(problem(exception.getStatus(), exception.getMessage(), request));
+        var detail=problem(exception.getStatus(), exception.getMessage(), request);
+        if(exception.getCode()!=null) detail.setProperty("code",exception.getCode());
+        return ResponseEntity.status(exception.getStatus()).body(detail);
+    }
+
+    @ExceptionHandler(org.springframework.orm.ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ProblemDetail> stale(Exception exception,WebRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem(HttpStatus.CONFLICT,"This content changed. Reopen the page before saving or publishing.",request));
     }
 
     @Override protected ResponseEntity<Object> handleMethodArgumentNotValid(

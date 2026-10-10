@@ -23,10 +23,11 @@ feedback. Async responses are checked against a session generation so they canno
 return data into a later account. Multi-tab refresh coordination is not included;
 simultaneous cross-tab refresh can require signing in again due to replay detection.
 
-Draft and verification keys are suffixed with the authenticated user UUID; media
-in memory is scoped similarly. Account changes remount portal views. Legacy
-anonymous demo data is preserved without automatic migration. Analytics and
-publishing remain explicitly labeled demos until their backend PR.
+Content and verification progress use authenticated APIs; simulated media in
+memory is scoped by account. Account changes remount portal views. Legacy
+browser demo data is preserved without automatic migration. Publishing uses
+server-owned status and identity gating; analytics remain
+explicitly labeled demos. Upload completion is still simulated.
 
 Verify with `npm test`, `npm run lint`, `npm run build`. Tests cover transport and
 session races, StrictMode startup, protected redirects, registration validation,

@@ -57,13 +57,13 @@ export function ContentDetail() {
     try {
       const content =
         scheduleDate === undefined
-          ? await draftRepository.publish(id)
-          : await draftRepository.schedule(id, scheduleDate);
+          ? await draftRepository.publish(id, state?.content?.version)
+          : await draftRepository.schedule(id, scheduleDate, state?.content?.version);
       setState({ id, content });
       setMessage(
         content.status === "PUBLISHED"
-          ? "Content published in this local demo."
-          : "Publication scheduled in this local demo.",
+          ? "Content published. Media delivery is simulated."
+          : "Publication scheduled. Media delivery is simulated.",
       );
     } catch (reason) {
       if (reason instanceof VerificationRequiredError) setBlocked(true);
@@ -132,7 +132,7 @@ export function ContentDetail() {
         </Link>
       </div>
       <p className="mt-6 rounded-xl border border-violet-100 bg-violet-50 p-4 text-sm leading-6 text-violet-900">
-        Local publishing demo only. Completed uploads simulate media readiness; no
+        Publication status is saved to your account. Completed uploads simulate media readiness; no
         video is uploaded, processed, or delivered to viewers.
       </p>
       {message && (
@@ -160,8 +160,8 @@ export function ContentDetail() {
             Verify your account to publish
           </h2>
           <p className="mt-2 text-sm leading-6 text-amber-900">
-            Your draft is safe. Complete verification, then simulate approval to
-            enable demo publishing and scheduling.
+            Your draft is safe. Complete identity verification and wait for
+            approval before publishing or scheduling.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
@@ -247,13 +247,13 @@ export function ContentDetail() {
           <h2 className="text-lg font-semibold">Publication</h2>
           {content.status === "PUBLISHED" ? (
             <p className="mt-4 text-sm leading-6 text-emerald-800">
-              This content is published in the local demo. Editing and saving
+              This content is published. Editing and saving
               will return it to Draft.
             </p>
           ) : (
             <>
               <p className="mt-3 text-sm leading-6 text-slate-500">
-                Publish now or choose a future date. Both actions require demo
+                Publish now or choose a future date. Both actions require identity
                 approval and completed simulated uploads. Uploads continue while
                 navigating within this app; reselect files after a reload.
               </p>
@@ -301,10 +301,9 @@ export function ContentDetail() {
             </>
           )}
           <p className="mt-6 text-xs leading-5 text-slate-500">
-            Demo schedules are checked every 15 seconds on this page and the
-            content list, and when the app reads content again. A closed browser
-            cannot publish at the exact scheduled time; reliable scheduling
-            requires the future backend.
+            The server checks due schedules every 15 seconds, including while
+            your browser is closed. Publication can take longer during an outage
+            and resumes when the server is available.
           </p>
         </section>
       </div>

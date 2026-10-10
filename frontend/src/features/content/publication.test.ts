@@ -1,6 +1,7 @@
+import "../../test/useDemoRepositories";
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { draftRepository } from "./draftRepository";
+import { draftRepository } from "../../test/localDraftRepository";
 import { setSessionMedia, removeSessionMedia } from "./sessionMedia";
 import { verificationRepository } from "../verification/verificationRepository";
 import { uploadService } from "./uploadService";

@@ -92,7 +92,7 @@ export function PortalLayout() {
           tabIndex={-1}
           className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-8 sm:py-10 lg:px-10"
         >
-          <p className="mb-4 text-xs leading-5 text-slate-500">Content, uploads, verification and sales currently use account-scoped browser demo data.</p>
+          <p className="mb-4 text-xs leading-5 text-slate-500">Content and verification progress are saved to your account. Media uploads, identity checks and sales analytics are simulated.</p>
           {state.error && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{state.error}</p>}
           <EmailVerificationBanner />
           <Outlet />

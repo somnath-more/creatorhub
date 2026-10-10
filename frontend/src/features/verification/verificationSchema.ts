@@ -39,6 +39,7 @@ export type DocumentType = (typeof documentTypes)[number] | "";
 export const progressSchema = z
   .object({
     status: z.enum(["NOT_STARTED", "IN_PROGRESS", "SUBMITTED", "VERIFIED"]),
+    demoApprovalEnabled: z.boolean().optional(),
     step: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
     personal: z.object({
       fullName: z.string().max(100),

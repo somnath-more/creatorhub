@@ -108,7 +108,7 @@ export function ContentLibrary() {
   async function remove(id: string) {
     setDeleting(true);
     try {
-      await draftRepository.remove(id);
+      await draftRepository.remove(id, drafts.find(draft => draft.id === id)?.version);
       removeSessionMedia(id);
       setDrafts((previous) => previous.filter((draft) => draft.id !== id));
       setConfirmId(null);
@@ -180,8 +180,8 @@ export function ContentLibrary() {
         </div>
       )}
       <p className="mt-6 rounded-xl border border-violet-100 bg-violet-50 p-4 text-sm leading-6 text-violet-900">
-        Local demo: drafts are saved in this browser only. Files stay in memory
-        until a reload; their details remain saved.
+        Content details are saved to your account. Media uploads are simulated:
+        files stay on this device until a reload; their details remain saved.
       </p>
       <div className="mt-5 flex flex-wrap gap-4">
         <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">

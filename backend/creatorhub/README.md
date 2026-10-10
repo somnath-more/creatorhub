@@ -3,8 +3,10 @@
 Java 17 / Spring Boot 4.1.1 monolith with Maven Wrapper, PostgreSQL 17, Flyway,
 JPA, Validation, Security, and Actuator. Includes registration, JWT login,
 current-creator identity, and development Swagger testing. Frontend integration
-now includes refresh sessions, logout and protected React routes. Content APIs
-remain separate. See [session setup](docs/sessions.md).
+now includes refresh sessions, logout and protected React routes. Creator-owned
+content and identity progress use PostgreSQL-backed APIs, with a server-enforced
+publishing gate. See [session setup](docs/sessions.md) and
+[content API/demo guide](docs/content-api.md).
 
 ## Layers
 

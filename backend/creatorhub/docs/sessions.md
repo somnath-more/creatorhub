@@ -90,11 +90,12 @@ expired sessions (refresh rows cascade) with a scheduled maintenance job. This P
 does not install that job. Session validation adds a database lookup per Bearer
 request; shared revocation caching would need careful consistency at higher scale.
 
-Content/verification/uploads still use browser demos, now keyed by account UUID.
+Content and verification progress now persist through creator-owned APIs.
+Simulated file bytes stay in account-scoped browser memory.
 Anonymous legacy demo records remain untouched and are not adopted by accounts.
-This is UX isolation, not secure server storage. Password reset and email verification
+Browser media scoping is UX isolation, not secure storage. Password reset and email verification
 are implemented; see [account recovery](account-recovery.md). Backend-owned content
-and verified publishing are the next milestones.
+and verified publishing are implemented; see [content APIs](content-api.md).
 
 References: [Spring Security SPA CSRF](https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html),
 [springdoc CSRF properties](https://springdoc.org/properties.html).

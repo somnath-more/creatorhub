@@ -54,7 +54,10 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/verify-email").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/account/email-verification/resend").hasAuthority("SCOPE_creator")
-                            .requestMatchers(HttpMethod.GET, "/api/me").hasAuthority("SCOPE_creator");
+                            .requestMatchers(HttpMethod.GET, "/api/me", "/api/content", "/api/content/*", "/api/verification").hasAuthority("SCOPE_creator")
+                            .requestMatchers(HttpMethod.POST, "/api/content", "/api/content/*/publish", "/api/content/*/schedule", "/api/verification/demo-approval").hasAuthority("SCOPE_creator")
+                            .requestMatchers(HttpMethod.PUT, "/api/content/*", "/api/verification").hasAuthority("SCOPE_creator")
+                            .requestMatchers(HttpMethod.DELETE, "/api/content/*").hasAuthority("SCOPE_creator");
                     if (docsEnabled) config.requestMatchers(HttpMethod.GET, "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll();
                     config.anyRequest().denyAll();
                 })

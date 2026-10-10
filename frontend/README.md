@@ -1,7 +1,8 @@
 # CreatorHub frontend
 
 React + TypeScript + Vite creator portal. Authentication is connected to the
-Spring backend; content, uploads, verification and analytics remain browser demos.
+Spring backend. Content and verification progress persist in PostgreSQL; uploads,
+identity checks and analytics remain simulations.
 See [authentication setup](docs/authentication.md) to start both applications.
 
 ```powershell

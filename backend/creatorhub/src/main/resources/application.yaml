@@ -37,6 +37,8 @@ server:
     include-stacktrace: never
     include-binding-errors: never
 app:
+  verification:
+    demo-approval-enabled: ${DEMO_VERIFICATION_ENABLED:false}
   recovery:
     frontend-url: ${FRONTEND_URL:http://localhost:5173}
     from: ${MAIL_FROM:no-reply@creatorhub.local}

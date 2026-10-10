@@ -26,7 +26,7 @@ class CreatorRepositoryIT extends DatabaseIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired JdbcTemplate jdbc;
     @Test void migrationAndJpaMappingWorkOnPostgres() {
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("4");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("5");
         Creator creator = repository.saveAndFlush(new Creator("test:" + UUID.randomUUID()));
         Creator loaded = repository.findById(creator.getId()).orElseThrow();
         assertThat(loaded.getPrincipalReference()).isEqualTo(creator.getPrincipalReference());

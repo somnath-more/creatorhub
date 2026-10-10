@@ -58,7 +58,7 @@ export function VerificationWizard() {
     setError("");
     setValidation("");
     try {
-      const saved = await verificationRepository.save(next);
+      const saved = await verificationRepository.save(next, { documentSelected: !!document, selfieSelected: !!selfie });
       setProgress(saved);
       if (saved.status === "SUBMITTED") {
         setDocument(undefined);
@@ -120,8 +120,8 @@ export function VerificationWizard() {
     <>
       <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
         Demo only: use fictional personal details and sample files. Nothing is
-        uploaded or checked by an identity service. Progress is saved in this
-        browser when you continue or go back.
+        uploaded or checked by an identity service. Progress is saved to your
+        account when you continue or go back.
       </div>
       <p className="mt-4 text-sm text-slate-600">
         Status:{" "}
@@ -213,8 +213,10 @@ export function VerificationWizard() {
             </p>
             <p className="mt-3 text-sm leading-6 text-slate-600">
               {progress.status === "VERIFIED"
-                ? "This approval is a local demonstration, not a real identity check."
-                : "Submission is awaiting review and does not mean your account is verified. Publishing remains locked until you explicitly simulate approval below."}
+                ? "This approval is a demonstration, not a real identity check."
+                : progress.demoApprovalEnabled === false
+                  ? "Submission is awaiting review. Simulated approval is disabled in this environment; publishing remains locked."
+                  : "Submission is awaiting review and does not mean your account is verified. Publishing remains locked until you explicitly simulate approval below."}
             </p>
             <Link
               to={returnTo}
@@ -222,7 +224,7 @@ export function VerificationWizard() {
             >
               Back to content
             </Link>
-            {progress.status === "SUBMITTED" && (
+            {progress.status === "SUBMITTED" && progress.demoApprovalEnabled !== false && (
               <div className="mt-5 border-t border-slate-200 pt-5">
                 <p className="mb-3 text-xs leading-5 text-slate-500">
                   Assessment demo control: simulate a successful review without

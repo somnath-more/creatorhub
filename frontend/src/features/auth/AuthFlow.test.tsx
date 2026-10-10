@@ -1,3 +1,4 @@
+import "../../test/useDemoRepositories";
 // @vitest-environment jsdom
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";

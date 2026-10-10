@@ -47,7 +47,7 @@ export function DraftForm({ draft }: { draft?: Draft }) {
             { name: file!.name, size: file!.size, type: file!.type },
           ]),
       );
-      const saved = await draftRepository.save(values, draft?.id, metadata);
+      const saved = await draftRepository.save(values, draft?.id, { thumbnail: draft?.thumbnail, video: draft?.video, ...metadata }, draft?.version);
       checkAccount();
       setSessionMedia(saved.id, media);
       navigate("/content", {
@@ -68,8 +68,8 @@ export function DraftForm({ draft }: { draft?: Draft }) {
   return (
     <form onSubmit={handleSubmit(save)} noValidate className="mt-8 space-y-6">
       <div className="rounded-xl border border-violet-100 bg-violet-50 p-4 text-sm leading-6 text-violet-900">
-        Saved in this browser only. Upload progress is simulated; no files leave
-        your device. Reselect and upload again after a page reload. Drafts can be
+        Content details are saved to your account. Upload progress is simulated;
+        no files leave your device. Reselect and upload again after a page reload. Drafts can be
         saved without media, completed uploads, or verification.
       </div>
       {draft && draft.status !== "DRAFT" && (

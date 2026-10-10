@@ -1,48 +1,16 @@
-import {
-  emptyProgress,
-  progressSchema,
-  type VerificationProgress,
-} from "./verificationSchema";
-import { accountKey, captureAccount } from "../auth/accountScope";
-
+import { apiRequest, jsonRequest } from "../auth/apiRequest";
+import { progressSchema, type VerificationProgress } from "./verificationSchema";
 export const VERIFICATION_KEY = "creatorhub.verification.v1";
-
 export const verificationRepository = {
-  async load(): Promise<VerificationProgress> {
-    try {
-      const raw = localStorage.getItem(accountKey(VERIFICATION_KEY));
-      return raw === null
-        ? structuredClone(emptyProgress)
-        : progressSchema.parse(JSON.parse(raw));
-    } catch {
-      throw new Error(
-        "Verification progress could not be read. Check browser storage and try again. Existing data has not been changed.",
-      );
-    }
-  },
-  async save(progress: VerificationProgress): Promise<VerificationProgress> {
-    const validated = progressSchema.parse(progress);
-    try {
-      localStorage.setItem(accountKey(VERIFICATION_KEY), JSON.stringify(validated));
-      return validated;
-    } catch {
-      throw new Error(
-        "Verification progress could not be saved. Keep this page open, check browser storage, and try again.",
-      );
-    }
+  async load(): Promise<VerificationProgress> { return progressSchema.parse(await (await apiRequest("/api/verification")).json()); },
+  async save(progress: VerificationProgress, evidence: { documentSelected?: boolean; selfieSelected?: boolean } = {}): Promise<VerificationProgress> {
+    const validated=progressSchema.parse(progress);
+    const response=await apiRequest("/api/verification",jsonRequest("PUT",{
+      status:validated.status,step:validated.step,personal:validated.personal,documentType:validated.documentType,...evidence,
+    }));
+    return progressSchema.parse(await response.json());
   },
   async simulateApproval(): Promise<VerificationProgress> {
-    const checkAccount = captureAccount();
-    const progress = await verificationRepository.load();
-    checkAccount();
-    if (progress.status !== "SUBMITTED")
-      throw new Error(
-        "Verification must be submitted before simulating approval.",
-      );
-    return verificationRepository.save({
-      ...progress,
-      status: "VERIFIED",
-      approvedAt: new Date().toISOString(),
-    });
+    return progressSchema.parse(await (await apiRequest("/api/verification/demo-approval",{method:"POST"})).json());
   },
 };

@@ -1,3 +1,4 @@
+import "../../test/useDemoRepositories";
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";

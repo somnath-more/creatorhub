@@ -32,6 +32,7 @@ export type FileMetadata = z.infer<typeof fileMetadataSchema>;
 export const draftSchema = z
   .object({
     id: z.string().min(1),
+    version: z.number().int().nonnegative().optional(),
     title: draftFormSchema.shape.title,
     description: draftFormSchema.shape.description,
     priceCents: z.number().int().min(0).max(99999999),

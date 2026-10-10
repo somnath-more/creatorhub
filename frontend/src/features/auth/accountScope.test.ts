@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it } from "vitest";
 import { accountKey, setAccountScope } from "./accountScope";
-import { verificationRepository } from "../verification/verificationRepository";
+import { verificationRepository } from "../../test/localVerificationRepository";
 import { emptyProgress } from "../verification/verificationSchema";
 import { setSessionMedia, getSessionMedia } from "../content/sessionMedia";
 afterEach(() => { setAccountScope(null); localStorage.clear(); });
