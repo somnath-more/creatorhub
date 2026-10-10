@@ -7,6 +7,7 @@ import { draftFormSchema, type Draft, type DraftInput } from "./draftSchema";
 import { draftRepository } from "./draftRepository";
 import { getSessionMedia, setSessionMedia } from "./sessionMedia";
 import { MediaField } from "./MediaField";
+import { uploadService } from "./uploadService";
 
 export function DraftForm({ draft }: { draft?: Draft }) {
   const navigate = useNavigate();
@@ -63,9 +64,9 @@ export function DraftForm({ draft }: { draft?: Draft }) {
   return (
     <form onSubmit={handleSubmit(save)} noValidate className="mt-8 space-y-6">
       <div className="rounded-xl border border-violet-100 bg-violet-50 p-4 text-sm leading-6 text-violet-900">
-        Saved in this browser only. Files are not uploaded; reselect them after
-        a page reload. Drafts are private and can be saved without media or
-        verification.
+        Saved in this browser only. Upload progress is simulated; no files leave
+        your device. Reselect and upload again after a page reload. Drafts can be
+        saved without media, completed uploads, or verification.
       </div>
       {draft && draft.status !== "DRAFT" && (
         <p className="rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">
@@ -152,9 +153,11 @@ export function DraftForm({ draft }: { draft?: Draft }) {
               kind={kind}
               file={media[kind]}
               saved={draft?.[kind]}
-              onChange={(file) =>
-                setMedia((previous) => ({ ...previous, [kind]: file }))
-              }
+              onChange={(file) => {
+                if (media[kind]) uploadService.cancel(media[kind]);
+                uploadService.start(file);
+                setMedia((previous) => ({ ...previous, [kind]: file }));
+              }}
               onValidityChange={(valid) =>
                 setInvalidMedia((previous) => ({ ...previous, [kind]: !valid }))
               }

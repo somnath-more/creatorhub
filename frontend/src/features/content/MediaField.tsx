@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import type { FileMetadata } from "./draftSchema";
 import { ThumbnailPreview } from "./ThumbnailPreview";
+import { MediaUploadProgress } from "./MediaUploadProgress";
 
 type Props = {
   kind: "thumbnail" | "video";
@@ -98,6 +99,7 @@ export function MediaField({
           className="mt-3 aspect-video w-full rounded-lg object-cover"
         />
       )}
+      {file && <MediaUploadProgress file={file} label={label} />}
     </div>
   );
 }

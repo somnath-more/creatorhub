@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { draftRepository } from "./draftRepository";
 import { setSessionMedia, removeSessionMedia } from "./sessionMedia";
 import { verificationRepository } from "../verification/verificationRepository";
+import { uploadService } from "./uploadService";
 
 const input = {
   title: "Ready video",
@@ -15,10 +16,15 @@ const metadata = {
 };
 async function ready() {
   const content = await draftRepository.save(input, undefined, metadata);
-  setSessionMedia(content.id, {
+  const files = {
     thumbnail: new File(["image"], "cover.png", { type: "image/png" }),
     video: new File(["video"], "video.mp4", { type: "video/mp4" }),
-  });
+  };
+  setSessionMedia(content.id, files);
+  vi.useFakeTimers();
+  Object.values(files).forEach((file) => uploadService.start(file));
+  vi.advanceTimersByTime(5000);
+  vi.useRealTimers();
   return content;
 }
 async function approve() {
@@ -41,6 +47,15 @@ beforeEach(() => {
 });
 
 describe("demo publication rules", () => {
+  it("blocks incomplete uploads even when files match saved metadata", async () => {
+    await approve();
+    const content = await ready();
+    const replacement = new File(["video"], "video.mp4", { type: "video/mp4" });
+    setSessionMedia(content.id, { video: replacement });
+    await expect(draftRepository.publish(content.id)).rejects.toThrow("Complete both simulated uploads");
+    await expect(draftRepository.schedule(content.id, "2999-01-01T12:00:00Z")).rejects.toThrow("Complete both simulated uploads");
+    expect((await draftRepository.get(content.id))?.status).toBe("DRAFT");
+  });
   it("loads legacy drafts without discarding existing data", async () => {
     const content = await draftRepository.save(input);
     const { mediaStatus: omitted, ...legacy } = content;
