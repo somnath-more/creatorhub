@@ -50,8 +50,8 @@ For the updated cookie-aware PowerShell commands, see [session testing](sessions
 Remove the dev profile for normal deployment: documentation is disabled by default.
 Use HTTPS and controlled frontend origins. Do not expose the dev profile publicly.
 Refresh sessions, current-session logout and frontend authentication are now
-implemented; see sessions.md. There is no password reset, email verification or
-login throttling. Logging
+implemented; see sessions.md. Password reset and email verification are described
+in [account recovery](account-recovery.md). Login throttling is not implemented. Logging
 out revokes the current server session, including its access tokens. Add abuse
 controls before public launch. Identity verification for publishing is separate
 from login and will be implemented in a later PR.

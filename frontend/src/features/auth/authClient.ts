@@ -3,7 +3,7 @@ import { setAccountScope } from "./accountScope";
 
 const sessionSchema = z.object({
   accessToken: z.string().min(1), tokenType: z.literal("Bearer"), expiresIn: z.number().positive(),
-  creator: z.object({ userId: z.string().min(1), creatorId: z.string().min(1), fullName: z.string(), email: z.string() }),
+  creator: z.object({ userId: z.string().min(1), creatorId: z.string().min(1), fullName: z.string(), email: z.string(), emailVerified: z.boolean().default(false) }),
 });
 export type AuthSession = z.infer<typeof sessionSchema>;
 export type AuthState = { status: "initializing" | "authenticated" | "anonymous" | "error" | "signingOut";
@@ -18,6 +18,15 @@ async function failure(response: Response): Promise<never> {
   throw new ApiError(message, response.status);
 }
 export class AuthClient {
+  clearLocalSession() { ++this.generation; this.publish({ status: "anonymous", session: null }); }
+  async refreshProfile() {
+    if (!this.state.session) return;
+    const generation = this.generation;
+    const response = await this.request("/api/me");
+    if (!response.ok) await failure(response);
+    const creator = sessionSchema.shape.creator.parse(await response.json());
+    if (generation === this.generation && this.state.session) this.publish({ status: "authenticated", session: { ...this.state.session, creator } });
+  }
   private state: AuthState = { status: "initializing", session: null };
   private listeners = new Set<() => void>();
   private refreshPending: Promise<AuthSession | null> | null = null;

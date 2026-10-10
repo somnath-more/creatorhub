@@ -32,3 +32,9 @@ Verify with `npm test`, `npm run lint`, `npm run build`. Tests cover transport a
 session races, StrictMode startup, protected redirects, registration validation,
 connection recovery, account isolation and existing demo workflows. DOM worker
 concurrency is limited to four for reliable developer-machine runs.
+
+Account recovery adds public `/forgot-password`, `/reset-password`, and
+`/verify-email` pages. The portal offers verification resend and profile refresh.
+Email verification is separate from identity verification. See the backend
+[recovery guide](../../backend/creatorhub/docs/account-recovery.md) for local
+Mailpit setup, link expiry, session revocation and production SMTP configuration.

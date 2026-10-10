@@ -15,11 +15,14 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService auth;
     private final SessionCookies cookies;
-    public AuthController(AuthService auth, SessionCookies cookies) { this.auth = auth; this.cookies = cookies; }
+    private final com.ampacash.creatorhub.service.AccountRecoveryService recovery;
+    public AuthController(AuthService auth, SessionCookies cookies, com.ampacash.creatorhub.service.AccountRecoveryService recovery) { this.auth = auth; this.cookies = cookies; this.recovery = recovery; }
     @PostMapping("/register")
     @Operation(summary = "Register a creator account")
     public ResponseEntity<CreatorProfile> register(@Valid @RequestBody RegistrationRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(auth.register(request));
+        var profile = auth.register(request);
+        recovery.requestVerification(profile.userId());
+        return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noStore()).body(profile);
     }
     @PostMapping("/login")
     @Operation(summary = "Log in with X-XSRF-TOKEN; receive access token and HttpOnly refresh cookie")

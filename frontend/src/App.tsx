@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import { RecoveryPage } from "./features/auth/RecoveryPage";
 import { PortalLayout } from "./layouts/PortalLayout";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ContentPage } from "./pages/ContentPage";
@@ -19,6 +20,9 @@ export default function App() {
 export function PortalRoutes() {
   return (
     <Routes>
+      <Route path="forgot-password" element={<RecoveryPage key="forgot" mode="forgot-password" />} />
+      <Route path="reset-password" element={<RecoveryPage key="reset" mode="reset-password" />} />
+      <Route path="verify-email" element={<RecoveryPage key="verify" mode="verify-email" />} />
       <Route path="login" element={<LoginPage />} />
       <Route path="register" element={<RegisterPage />} />
       <Route element={<ProtectedRoute />}>

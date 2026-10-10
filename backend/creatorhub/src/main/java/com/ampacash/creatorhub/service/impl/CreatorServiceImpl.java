@@ -19,6 +19,6 @@ public class CreatorServiceImpl implements CreatorService {
         var user = users.findById(userId).orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Account is unavailable."));
         var creator = creators.findByPrincipalReference("local:" + userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Account is unavailable."));
-        return new CreatorProfile(user.getId(), creator.getId(), user.getFullName(), user.getEmail());
+        return new CreatorProfile(user.getId(), creator.getId(), user.getFullName(), user.getEmail(), user.isEmailVerified());
     }
 }

@@ -52,6 +52,8 @@ public class SecurityConfig {
                     config.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/auth/csrf").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/verify-email").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/account/email-verification/resend").hasAuthority("SCOPE_creator")
                             .requestMatchers(HttpMethod.GET, "/api/me").hasAuthority("SCOPE_creator");
                     if (docsEnabled) config.requestMatchers(HttpMethod.GET, "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll();
                     config.anyRequest().denyAll();

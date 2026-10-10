@@ -92,8 +92,9 @@ request; shared revocation caching would need careful consistency at higher scal
 
 Content/verification/uploads still use browser demos, now keyed by account UUID.
 Anonymous legacy demo records remain untouched and are not adopted by accounts.
-This is UX isolation, not secure server storage. Password reset, email verification,
-backend-owned content and verified publishing are the next milestones.
+This is UX isolation, not secure server storage. Password reset and email verification
+are implemented; see [account recovery](account-recovery.md). Backend-owned content
+and verified publishing are the next milestones.
 
 References: [Spring Security SPA CSRF](https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html),
 [springdoc CSRF properties](https://springdoc.org/properties.html).

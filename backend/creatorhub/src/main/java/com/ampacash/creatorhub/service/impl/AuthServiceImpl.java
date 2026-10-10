@@ -36,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     }
     @Override @Transactional
     public SessionGrant login(LoginRequest request) {
-        var user = users.findByEmail(request.email());
+        var user = users.lockByEmail(request.email());
         boolean matches = passwords.matches(request.password(), user.map(User::getPasswordHash).orElse(dummyHash));
         if (user.isEmpty() || !matches) throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
         return sessions.start(user.get().getId());

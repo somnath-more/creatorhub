@@ -7,8 +7,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 abstract class DatabaseIntegrationTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    protected com.ampacash.creatorhub.service.AccountMailService accountMail;
     private static PostgreSQLContainer database;
     @DynamicPropertySource static synchronized void database(DynamicPropertyRegistry registry) {
+        registry.add("app.auth.cookie-secure", () -> true);
         String external = System.getenv("TEST_DATABASE_URL");
         if (external != null && !external.isBlank()) {
             registry.add("spring.datasource.url", () -> external);
