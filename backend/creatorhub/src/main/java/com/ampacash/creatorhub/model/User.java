@@ -12,6 +12,7 @@ public class User {
     @Column(name = "full_name", nullable = false, length = 100) private String fullName;
     @Column(name = "password_hash", nullable = false, length = 255) private String passwordHash;
     @Column(name = "created_at", nullable = false, updatable = false) private Instant createdAt;
+    @Column(name = "email_verified_at") private Instant emailVerifiedAt;
     protected User() {}
     public User(String email, String fullName, String passwordHash) {
         this.email = email; this.fullName = fullName; this.passwordHash = passwordHash;
@@ -21,4 +22,7 @@ public class User {
     public String getEmail() { return email; }
     public String getFullName() { return fullName; }
     public String getPasswordHash() { return passwordHash; }
+    public boolean isEmailVerified() { return emailVerifiedAt != null; }
+    public void verifyEmail(Instant now) { emailVerifiedAt = now; }
+    public void changePassword(String hash) { passwordHash = hash; }
 }

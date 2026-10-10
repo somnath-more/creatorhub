@@ -49,6 +49,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
         <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting || state.status === "initializing"}>{isSubmitting ? "Please wait…" : signingUp ? "Create account" : "Sign in"}</Button>
       </form>
+      {!signingUp && <Link to="/forgot-password" className="mt-4 block text-sm text-violet-700 underline">Forgot password?</Link>}
       <p className="mt-6 text-center text-sm text-slate-600">{signingUp ? "Already have an account? " : "New to CreatorHub? "}<Link className="font-semibold text-violet-700 underline underline-offset-4" to={signingUp ? "/login" : "/register"}>{signingUp ? "Sign in" : "Create account"}</Link></p>
     </section>
   </main>;

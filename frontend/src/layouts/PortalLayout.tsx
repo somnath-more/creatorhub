@@ -4,6 +4,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
 import { PortalNavigation } from "../components/molecules/PortalNavigation";
 import { useAuth } from "../features/auth/authContext";
+import { EmailVerificationBanner } from "../features/auth/EmailVerificationBanner";
 
 function Brand() {
   return (
@@ -93,6 +94,7 @@ export function PortalLayout() {
         >
           <p className="mb-4 text-xs leading-5 text-slate-500">Content, uploads, verification and sales currently use account-scoped browser demo data.</p>
           {state.error && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{state.error}</p>}
+          <EmailVerificationBanner />
           <Outlet />
         </main>
       </div>
