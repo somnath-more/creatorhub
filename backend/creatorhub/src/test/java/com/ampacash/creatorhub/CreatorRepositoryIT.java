@@ -20,33 +20,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class CreatorRepositoryIT {
+class CreatorRepositoryIT extends DatabaseIntegrationTest {
     @Autowired CreatorRepository repository;
     @Autowired Flyway flyway;
     @Autowired MockMvc mvc;
     @Autowired JdbcTemplate jdbc;
-    private static PostgreSQLContainer database;
-    @DynamicPropertySource static void database(DynamicPropertyRegistry registry) {
-        String externalUrl = System.getenv("TEST_DATABASE_URL");
-        if (externalUrl != null && !externalUrl.isBlank()) {
-            registry.add("spring.datasource.url", () -> externalUrl);
-            registry.add("spring.datasource.username", () -> required("TEST_DATABASE_USERNAME"));
-            registry.add("spring.datasource.password", () -> required("TEST_DATABASE_PASSWORD"));
-        } else {
-            database = new PostgreSQLContainer("postgres:17-alpine");
-            database.start();
-            registry.add("spring.datasource.url", database::getJdbcUrl);
-            registry.add("spring.datasource.username", database::getUsername);
-            registry.add("spring.datasource.password", database::getPassword);
-        }
-    }
-    private static String required(String key) {
-        String value = System.getenv(key);
-        if (value == null) throw new IllegalStateException(key + " is required with TEST_DATABASE_URL");
-        return value;
-    }
     @Test void migrationAndJpaMappingWorkOnPostgres() {
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("1");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
         Creator creator = repository.saveAndFlush(new Creator("test:" + UUID.randomUUID()));
         Creator loaded = repository.findById(creator.getId()).orElseThrow();
         assertThat(loaded.getPrincipalReference()).isEqualTo(creator.getPrincipalReference());

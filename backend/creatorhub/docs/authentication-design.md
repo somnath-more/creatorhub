@@ -1,6 +1,6 @@
 # Registration, JWT authentication, and Swagger design
 
-Status: proposed for review before implementation.
+Status: approved and implemented; see authentication-verification.md for evidence and limitations.
 
 ## Outcome and boundaries
 
