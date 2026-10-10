@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { demoMode } from "../demo/demoMode";
+import { DemoControls } from '../demo/DemoControls';
 import { Menu, Play, X } from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "../components/atoms/Button";
@@ -95,6 +96,7 @@ export function PortalLayout() {
         >
           <p className="mb-4 text-xs leading-5 text-slate-500">{demoMode ? "Frontend demo: data stays in this browser. No sign-in or backend. Uploads, identity checks and analytics are simulated. Use fictional information; reselect media after reload." : "Content and verification progress are saved to your account. Media uploads, identity checks and sales analytics are simulated."}</p>
           {state.error && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{state.error}</p>}
+          {demoMode && <DemoControls />}
           <EmailVerificationBanner />
           <Outlet />
         </main>

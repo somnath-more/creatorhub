@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { demoMode } from './demoMode';
+import { seedContent } from './seedData';
 import { accountKey, captureAccount } from "../features/auth/accountScope";
 import {
   requireSelectedMedia,
@@ -20,6 +22,11 @@ type MediaMetadata = { thumbnail?: FileMetadata; video?: FileMetadata };
 function read(): Draft[] {
   try {
     const raw = localStorage.getItem(accountKey(DRAFT_STORAGE_KEY));
+    if (raw === null && demoMode) {
+      const records = seedContent();
+      write(records);
+      return records;
+    }
     return raw === null ? [] : z.array(draftSchema).parse(JSON.parse(raw));
   } catch {
     throw new Error(
