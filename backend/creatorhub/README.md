@@ -1,9 +1,9 @@
 # CreatorHub backend
 
 Java 17 / Spring Boot 4.1.1 monolith with Maven Wrapper, PostgreSQL 17, Flyway,
-JPA, Validation, Security, and Actuator. This milestone provides infrastructure;
-registration, token authentication, business APIs, and frontend integration are
-not implemented yet.
+JPA, Validation, Security, and Actuator. Includes registration, JWT login,
+current-creator identity, and development Swagger testing. Frontend integration
+and content APIs are separate milestones. See [authentication setup](docs/authentication.md).
 
 ## Layers
 
@@ -17,12 +17,11 @@ controller -> service (interface) -> service.impl -> repository -> model
 Controllers use DTOs and service interfaces, never repositories directly.
 Service implementations own transactions and business rules. JPA entities stay
 inside the persistence/business layers. Required dependencies use constructor
-injection. Controller/service packages contain package documentation until the
-first real feature; no fake endpoints or empty implementations are exposed.
+injection. Authentication follows these layers with database-backed accounts.
 
 The first Flyway migration creates `creators` with a UUID ID, a unique nonblank
-principal reference, and timestamps. The future auth implementation must derive
-that reference from a trusted identity; clients must not assign ownership.
+principal reference, and timestamps. V2 adds users; creator references are
+derived from the authenticated user UUID as `local:<userId>`.
 
 ## Local startup (PowerShell)
 
@@ -31,6 +30,11 @@ Install JDK 17 and Docker Desktop. From `backend/creatorhub`:
 ```powershell
 $env:DATABASE_PASSWORD = 'choose-a-local-development-password'
 docker compose up -d
+$authKeyBytes = New-Object byte[] 32
+$authRng = [Security.Cryptography.RandomNumberGenerator]::Create()
+$authRng.GetBytes($authKeyBytes)
+$authRng.Dispose()
+$env:APP_JWT_SECRET = [Convert]::ToBase64String($authKeyBytes)
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -56,6 +60,8 @@ before Hibernate validates the schema. Existing databases are never auto-baselin
 | `DATABASE_USERNAME` | `creatorhub` |
 | `DATABASE_PASSWORD` | Required; no application default |
 | `DATABASE_POOL_SIZE` | `10` |
+| `APP_JWT_SECRET` | Required Base64 encoding of at least 32 random bytes |
+| `SPRING_PROFILES_ACTIVE` | Set `dev` to enable Swagger; disabled by default |
 | `SERVER_PORT` | `8080` |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` |
 | `DATABASE_PORT` | Compose host port, `5432`; update `DATABASE_URL` if changed |
@@ -66,17 +72,17 @@ appropriate database privileges/TLS, and explicitly configured frontend origins.
 
 ## Security and API errors
 
-Only GET requests to the three health endpoints are public. Everything else is
-denied; approved CORS preflights do not grant API access. CORS allows exact HTTP(S)
+GET requests to the three health endpoints and POST registration/login are public.
+GET `/api/me` requires a valid JWT with creator scope. Swagger routes are public
+only when documentation is enabled. Other routes are denied. CORS allows exact HTTP(S)
 origins and explicit methods/headers, with no wildcard origins or credentials.
 Invalid origin configuration fails validation at startup.
 
-There are no accounts in the deliberately empty user store, no generated default
-password, and no form/basic login. Sessions, request caching, and CSRF protection
-are disabled for this foundation, which accepts no authenticated business writes.
-Revisit CSRF when choosing token/cookie transport; do not enable cookie-based APIs
-without the corresponding protection. Future authentication must replace this
-default-deny configuration deliberately.
+Accounts use BCrypt password hashes in PostgreSQL. An empty framework user store
+suppresses generated development accounts; application login uses AuthService.
+Authentication uses explicit Bearer headers, with no form/basic login, cookies,
+sessions, or request cache. CSRF is disabled for this transport; cookie-based
+authentication would require revisiting that configuration.
 
 MVC validation errors, malformed JSON, unexpected failures, and security
 authentication/access-denied errors use RFC 9457 `application/problem+json`.

@@ -1,5 +1,5 @@
 /**
  * Business service interfaces consumed by controllers; implementations live in service.impl.
- * Business classes will be introduced alongside their feature APIs.
+ * Authentication, token issuance, and creator identity have separate interfaces.
  */
 package com.ampacash.creatorhub.service;

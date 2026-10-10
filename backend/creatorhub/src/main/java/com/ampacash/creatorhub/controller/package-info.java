@@ -1,5 +1,5 @@
 /**
  * HTTP endpoints use request/response DTOs and call service interfaces; never expose JPA entities.
- * Business classes will be introduced alongside their feature APIs.
+ * Authentication endpoints delegate account and identity work to services.
  */
 package com.ampacash.creatorhub.controller;

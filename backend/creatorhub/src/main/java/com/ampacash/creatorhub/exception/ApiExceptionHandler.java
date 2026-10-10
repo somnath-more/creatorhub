@@ -15,6 +15,11 @@ import java.net.URI;
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ProblemDetail> api(ApiException exception, WebRequest request) {
+        return ResponseEntity.status(exception.getStatus()).body(problem(exception.getStatus(), exception.getMessage(), request));
+    }
+
     @Override protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException exception, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ProblemDetail problem = problem(status, "Request validation failed.", request);
